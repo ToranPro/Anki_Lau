@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UET Flashcards v10 (Fix Voice)</title>
+    <title>UET Flashcards v11 (Fix UX)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; background-color: #f0f2f5; padding: 20px; color: #333; padding-bottom: 80px; }
         
@@ -97,7 +97,7 @@
         let fullDatabase = [];
         let studyQueue = [];
         let currentCard = null;
-        let voices = []; // Biến chứa danh sách giọng đọc
+        let voices = []; 
 
         const cardElement = document.getElementById("flashcard");
         const frontEl = document.getElementById("frontContent");
@@ -105,58 +105,110 @@
         const levelEl = document.getElementById("levelDisplay");
 
         function initApp() {
-            const savedData = localStorage.getItem('myFlashcards_v9');
+            // Đổi key để dùng database mới (fix lỗi cũ nếu có)
+            const savedData = localStorage.getItem('myFlashcards_v11');
             if (savedData) {
                 fullDatabase = JSON.parse(savedData);
+            } else if (localStorage.getItem('myFlashcards_v9')) {
+                // Tự động lấy dữ liệu từ bản v9/v10 sang nếu có
+                fullDatabase = JSON.parse(localStorage.getItem('myFlashcards_v9'));
             } else {
                 fullDatabase = [];
             }
             locTheCanHoc();
             
-            // Load giọng đọc ngay khi mở app
+            // Load giọng đọc
             loadVoices();
             if (speechSynthesis.onvoiceschanged !== undefined) {
                 speechSynthesis.onvoiceschanged = loadVoices;
             }
         }
 
-        // --- HÀM TÌM GIỌNG ĐỌC CHUẨN (FIX CHO iPHONE) ---
         function loadVoices() {
             voices = window.speechSynthesis.getVoices();
+        }
+
+        // --- HÀM ĐÁNH GIÁ (SỬA LỖI Ở ĐÂY) ---
+        function danhGia(nho) {
+            if (!currentCard) return;
+            const now = Date.now();
+            const oneDay = 24 * 60 * 60 * 1000; 
+
+            if (nho) {
+                // Nếu NHỚ: Tăng level, đẩy ngày học ra xa
+                currentCard.level = (currentCard.level || 0) + 1;
+                let daysToAdd = Math.pow(2, currentCard.level - 1); 
+                currentCard.nextReview = now + (daysToAdd * oneDay);
+            } else {
+                // Nếu QUÊN: Reset level về 0, học lại ngay
+                currentCard.level = 0;
+                currentCard.nextReview = now; 
+                
+                // --- FIX QUAN TRỌNG: Đẩy thẻ xuống cuối danh sách ---
+                // Để người dùng thấy thẻ khác hiện lên ngay, tạo cảm giác đã chuyển bài
+                const index = fullDatabase.indexOf(currentCard);
+                if (index > -1) {
+                    fullDatabase.push(fullDatabase.splice(index, 1)[0]);
+                }
+            }
+            saveToStorage();
+            locTheCanHoc(); 
+        }
+
+        function locTheCanHoc() {
+            const now = Date.now();
+            // Lọc ra thẻ cần học
+            studyQueue = fullDatabase.filter(card => !card.nextReview || card.nextReview <= now);
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById("dueCount").innerText = studyQueue.length;
+            document.getElementById("totalCount").innerText = fullDatabase.length;
+
+            if (studyQueue.length === 0) {
+                frontEl.innerText = fullDatabase.length === 0 ? "Chào bạn!" : "🎉 Đã xong!";
+                backEl.innerText = fullDatabase.length === 0 ? "Hãy thêm thẻ mới." : "Nghỉ ngơi thôi.";
+                levelEl.style.display = "none";
+                document.getElementById("reviewButtons").style.visibility = "hidden";
+                document.getElementById("audioBar").style.visibility = "hidden";
+                cardElement.classList.remove("is-flipped");
+                currentCard = null;
+                return;
+            }
+
+            currentCard = studyQueue[0]; // Luôn lấy thẻ đầu tiên
+            
+            document.getElementById("reviewButtons").style.visibility = "visible";
+            document.getElementById("audioBar").style.visibility = "visible";
+            levelEl.style.display = "inline-block";
+            cardElement.classList.remove("is-flipped"); // Lật về mặt trước
+
+            setTimeout(() => {
+                frontEl.innerText = currentCard.front;
+                backEl.innerText = currentCard.back;
+                levelEl.innerText = "Lv." + (currentCard.level || 0);
+            }, 200);
         }
 
         function docTiengAnh(tocDo = 1.0, event) {
             if (event) event.stopPropagation();
             if (!currentCard) return;
-
-            // Lấy nội dung, bỏ phần trong ngoặc (...)
             let cleanText = currentCard.front.replace(/\(.*\)/, "").trim();
-            
             let u = new SpeechSynthesisUtterance(cleanText);
             u.rate = tocDo;
 
-            // THUẬT TOÁN TÌM GIỌNG ƯU TIÊN:
-            // 1. Tìm giọng "Samantha" (Giọng chuẩn nhất trên iOS)
-            // 2. Nếu không có, tìm bất kỳ giọng nào có chữ "Google US"
-            // 3. Nếu không có, tìm bất kỳ giọng nào là tiếng Anh "en-US"
             let bestVoice = voices.find(v => v.name === "Samantha") 
                          || voices.find(v => v.name.includes("Samantha"))
                          || voices.find(v => v.name.includes("Google US English"))
                          || voices.find(v => v.lang === "en-US");
+            if (bestVoice) { u.voice = bestVoice; u.lang = bestVoice.lang; } 
+            else { u.lang = "en-US"; }
 
-            if (bestVoice) {
-                u.voice = bestVoice;
-                u.lang = bestVoice.lang;
-            } else {
-                // Đường cùng: Ép cứng mã ngôn ngữ
-                u.lang = "en-US";
-            }
-
-            window.speechSynthesis.cancel(); // Dừng câu cũ
+            window.speechSynthesis.cancel();
             window.speechSynthesis.speak(u);
         }
 
-        // --- CÁC HÀM CŨ ---
         function nhapDuLieu(input) {
             const file = input.files[0];
             if (!file) return;
@@ -179,10 +231,7 @@
         }
 
         function xuatDuLieu() {
-            if (fullDatabase.length === 0) {
-                alert("Chưa có thẻ nào để backup!");
-                return;
-            }
+            if (fullDatabase.length === 0) { alert("Chưa có thẻ nào!"); return; }
             const dataStr = JSON.stringify(fullDatabase, null, 2);
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
@@ -194,66 +243,13 @@
             document.body.removeChild(a);
         }
 
-        function locTheCanHoc() {
-            const now = Date.now();
-            studyQueue = fullDatabase.filter(card => !card.nextReview || card.nextReview <= now);
-            updateUI();
-        }
-
-        function updateUI() {
-            document.getElementById("dueCount").innerText = studyQueue.length;
-            document.getElementById("totalCount").innerText = fullDatabase.length;
-
-            if (studyQueue.length === 0) {
-                frontEl.innerText = fullDatabase.length === 0 ? "Chào bạn!" : "🎉 Đã xong!";
-                backEl.innerText = fullDatabase.length === 0 ? "Hãy thêm thẻ mới." : "Nghỉ ngơi thôi.";
-                levelEl.style.display = "none";
-                document.getElementById("reviewButtons").style.visibility = "hidden";
-                document.getElementById("audioBar").style.visibility = "hidden";
-                cardElement.classList.remove("is-flipped");
-                currentCard = null;
-                return;
-            }
-
-            currentCard = studyQueue[0];
-            document.getElementById("reviewButtons").style.visibility = "visible";
-            document.getElementById("audioBar").style.visibility = "visible";
-            levelEl.style.display = "inline-block";
-            cardElement.classList.remove("is-flipped");
-
-            setTimeout(() => {
-                frontEl.innerText = currentCard.front;
-                backEl.innerText = currentCard.back;
-                levelEl.innerText = "Lv." + (currentCard.level || 0);
-            }, 200);
-        }
-
-        function danhGia(nho) {
-            if (!currentCard) return;
-            const now = Date.now();
-            const oneDay = 24 * 60 * 60 * 1000; 
-
-            if (nho) {
-                currentCard.level = (currentCard.level || 0) + 1;
-                let daysToAdd = Math.pow(2, currentCard.level - 1); 
-                currentCard.nextReview = now + (daysToAdd * oneDay);
-            } else {
-                currentCard.level = 0;
-                currentCard.nextReview = now; 
-            }
-            saveToStorage();
-            locTheCanHoc(); 
-        }
-
         function latThe() { if (currentCard) cardElement.classList.toggle("is-flipped"); }
 
         function themThe() {
             const front = document.getElementById("newFront").value;
             const back = document.getElementById("newBack").value;
             if (front && back) {
-                fullDatabase.push({
-                    id: Date.now(), front: front, back: back, level: 0, nextReview: 0
-                });
+                fullDatabase.push({ id: Date.now(), front: front, back: back, level: 0, nextReview: 0 });
                 saveToStorage();
                 document.getElementById("newFront").value = "";
                 document.getElementById("newBack").value = "";
@@ -268,7 +264,7 @@
         }
 
         function saveToStorage() {
-            localStorage.setItem('myFlashcards_v9', JSON.stringify(fullDatabase));
+            localStorage.setItem('myFlashcards_v11', JSON.stringify(fullDatabase));
         }
 
         initApp();
