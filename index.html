@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UET Flashcards v16 (Edit/Delete Core)</title>
+    <title>UET Flashcards v17 (Smart Timer)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; background-color: #f0f2f5; padding: 20px; color: #333; padding-bottom: 80px; }
         
@@ -27,15 +27,22 @@
         .btn-audio { background: #fff; border: 1px solid #ddd; padding: 8px 15px; border-radius: 20px; font-size: 14px; cursor: pointer; color: #333; font-weight: 600; }
         .btn-audio:active { background: #e2e6ea; }
         
-        /* MAIN BUTTONS */
+        /* MAIN BUTTONS (Đã sửa lại để hiển thị 2 dòng) */
         .controls { margin-top: 20px; display: flex; justify-content: center; gap: 15px; }
-        .btn { padding: 12px 20px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; min-width: 60px;}
+        .btn { 
+            padding: 8px 20px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; min-width: 100px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            line-height: 1.2;
+        }
         
+        .btn-subtext { font-size: 11px; font-weight: normal; opacity: 0.9; margin-top: 2px; }
+
         .btn-forgot { background: #dc3545; }
         .btn-remember { background: #28a745; }
-        .btn-blue { background: #007bff; width: 100%; margin-top: 10px;}
-        .btn-gray { background: #6c757d; width: 100%; margin-top: 5px;}
-        .btn-purple { background: #6f42c1; width: 100%; margin-bottom: 5px;}
+        
+        .btn-blue { background: #007bff; width: 100%; margin-top: 10px; padding: 12px;}
+        .btn-gray { background: #6c757d; width: 100%; margin-top: 5px; padding: 12px;}
+        .btn-purple { background: #6f42c1; width: 100%; margin-bottom: 5px; padding: 12px;}
 
         .add-section { margin-top: 30px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         input[type="text"] { padding: 10px; margin: 5px; width: 85%; border: 1px solid #ddd; border-radius: 5px; }
@@ -45,10 +52,9 @@
         
         #fileInput { display: none; }
 
-        /* --- STYLE CHO PHẦN SỬA/XÓA (MỚI) --- */
         .hidden { display: none !important; }
         
-        /* Container nút bấm nhỏ ở mặt sau */
+        /* Action bar for Edit/Delete */
         .action-bar {
             margin-top: 15px;
             display: flex;
@@ -70,24 +76,12 @@
         .btn-delete { background: rgba(220, 53, 69, 0.8); }
         .btn-delete:hover { background: #dc3545; }
 
-        /* Form sửa thẻ */
+        /* Edit Form */
         .edit-form-container {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            align-items: center;
+            width: 100%; display: flex; flex-direction: column; gap: 5px; align-items: center;
         }
-        .edit-input {
-            width: 90%;
-            padding: 6px;
-            border-radius: 4px;
-            border: none;
-            font-size: 14px;
-        }
-        .edit-label {
-            font-size: 10px; text-align: left; width: 90%; opacity: 0.8; margin-bottom: -2px;
-        }
+        .edit-input { width: 90%; padding: 6px; border-radius: 4px; border: none; font-size: 14px; }
+        .edit-label { font-size: 10px; text-align: left; width: 90%; opacity: 0.8; margin-bottom: -2px; }
         
     </style>
 </head>
@@ -108,10 +102,8 @@
             </div>
 
             <div class="card-face card-back" id="backContentWrapper">
-                
                 <div id="viewMode">
                     <div id="backMainContent" style="font-size: 22px; font-weight: bold;">...</div>
-                    
                     <div class="action-bar">
                         <button class="btn-mini btn-edit" onclick="moCheDoSua(event)">✏️ Sửa</button>
                         <button class="btn-mini btn-delete" onclick="xoaThe(event)">🗑️ Xóa</button>
@@ -119,30 +111,33 @@
                 </div>
 
                 <div id="editMode" class="edit-form-container hidden" onclick="event.stopPropagation()">
-                    <span class="edit-label">Tiếng Anh (Mặt trước):</span>
+                    <span class="edit-label">Tiếng Anh:</span>
                     <input type="text" id="editFrontInput" class="edit-input">
-                    
-                    <span class="edit-label">Tiếng Việt (Mặt sau):</span>
+                    <span class="edit-label">Tiếng Việt:</span>
                     <input type="text" id="editBackInput" class="edit-input">
-
                     <div style="margin-top: 8px; display: flex; gap:5px;">
-                        <button class="btn-save-mini" style="background:white; color:#4caf50; border:none; padding:5px 10px; border-radius:4px; font-weight:bold; cursor:pointer;" onclick="luuLai(event)">Lưu</button>
-                        <button class="btn-cancel-mini" style="background:#ff5252; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="huySua(event)">Hủy</button>
+                        <button class="btn-mini" style="background:white; color:#4caf50;" onclick="luuLai(event)">Lưu</button>
+                        <button class="btn-mini" style="background:#ff5252;" onclick="huySua(event)">Hủy</button>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
     <div class="audio-controls" id="audioBar">
-        <button class="btn-audio" onclick="docTiengAnh(1.0, event)">🇺🇸 Nghe Chuẩn</button>
-        <button class="btn-audio" onclick="docTiengAnh(0.6, event)">🐌 Nghe Chậm</button>
+        <button class="btn-audio" onclick="docTiengAnh(1.0, event)">🇺🇸 Chuẩn</button>
+        <button class="btn-audio" onclick="docTiengAnh(0.6, event)">🐌 Chậm</button>
     </div>
 
     <div class="controls" id="reviewButtons">
-        <button class="btn btn-forgot" onclick="danhGia(false)">❌ Quên</button>
-        <button class="btn btn-remember" onclick="danhGia(true)">✅ Nhớ</button>
+        <button class="btn btn-forgot" id="btnForgot" onclick="danhGia(false)">
+            ❌ Quên
+            <span class="btn-subtext">(Ngay)</span>
+        </button>
+        <button class="btn btn-remember" id="btnRemember" onclick="danhGia(true)">
+            ✅ Nhớ
+            <span class="btn-subtext" id="timeNext">...</span>
+        </button>
     </div>
 
     <div class="add-section">
@@ -154,13 +149,10 @@
 
     <div class="add-section">
         <h3>📂 Sao lưu & Khôi phục</h3>
-        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Dùng file .json để lưu trữ dữ liệu của bạn</p>
-        
-        <button class="btn btn-purple" onclick="xuatDuLieu()">⬇️ Tải file Backup</button>
-        <button class="btn btn-gray" onclick="document.getElementById('fileInput').click()">⬆️ Chọn file để khôi phục</button>
+        <button class="btn btn-purple" onclick="xuatDuLieu()">⬇️ Tải Backup</button>
+        <button class="btn btn-gray" onclick="document.getElementById('fileInput').click()">⬆️ Khôi phục</button>
         <input type="file" id="fileInput" accept=".json" onchange="nhapDuLieu(this)">
-
-        <button class="btn btn-forgot" style="margin-top:20px; background:#dc3545; font-size: 14px" onclick="xoaHet()">🗑️ Xóa sạch tất cả</button>
+        <button class="btn btn-forgot" style="margin-top:20px; background:#dc3545;" onclick="xoaHet()">🗑️ Xóa tất cả</button>
     </div>
 
     <script>
@@ -174,14 +166,16 @@
         const backMainEl = document.getElementById("backMainContent");
         const levelEl = document.getElementById("levelDisplay");
         
-        // Element cho edit
+        // Edit elements
         const viewMode = document.getElementById("viewMode");
         const editMode = document.getElementById("editMode");
         const editFrontInput = document.getElementById("editFrontInput");
         const editBackInput = document.getElementById("editBackInput");
+        
+        // Text dự báo thời gian
+        const timeNextEl = document.getElementById("timeNext");
 
         function initApp() {
-            // Vẫn dùng key v14 để giữ dữ liệu cũ của bạn
             const savedData = localStorage.getItem('myFlashcards_v14'); 
             if (savedData) {
                 fullDatabase = JSON.parse(savedData);
@@ -198,64 +192,47 @@
             }
         }
 
-        function loadVoices() {
-            voices = window.speechSynthesis.getVoices();
-        }
+        function loadVoices() { voices = window.speechSynthesis.getVoices(); }
 
-        // --- HÀM SỬA / XÓA (CORE) ---
+        // --- CORE EDIT/DELETE ---
         function moCheDoSua(e) {
-            e.stopPropagation(); // Chặn lật thẻ
-            
-            // Đổ dữ liệu cũ vào ô input
+            e.stopPropagation(); 
             editFrontInput.value = currentCard.front;
             editBackInput.value = currentCard.back;
-
-            // Ẩn nội dung xem, hiện form sửa
             viewMode.classList.add("hidden");
             editMode.classList.remove("hidden");
         }
-
         function huySua(e) {
             if(e) e.stopPropagation();
             editMode.classList.add("hidden");
             viewMode.classList.remove("hidden");
         }
-
         function luuLai(e) {
             e.stopPropagation();
-
-            // Cập nhật biến tạm
             currentCard.front = editFrontInput.value;
             currentCard.back = editBackInput.value;
-
-            // Cập nhật vào mảng chính
             const idx = fullDatabase.findIndex(c => c.id === currentCard.id);
             if (idx !== -1) {
                 fullDatabase[idx].front = currentCard.front;
                 fullDatabase[idx].back = currentCard.back;
                 saveToStorage();
             }
-
-            // Cập nhật giao diện ngay lập tức
             frontEl.innerText = currentCard.front;
             backMainEl.innerText = currentCard.back;
-
             huySua(null);
         }
-
         function xoaThe(e) {
             e.stopPropagation();
             if(confirm(`Xóa thẻ "${currentCard.front}" chứ?`)) {
                 fullDatabase = fullDatabase.filter(c => c.id !== currentCard.id);
                 saveToStorage();
-                locTheCanHoc(); // Load thẻ tiếp theo
+                locTheCanHoc();
             }
         }
 
-        // --- LOGIC FLASHCARD CŨ ---
+        // --- FLASHCARD LOGIC ---
         function danhGia(nho) {
             if (!currentCard) return;
-            // Nếu đang mở form sửa thì đóng lại
             if (!editMode.classList.contains("hidden")) huySua(null);
 
             const now = Date.now();
@@ -268,11 +245,8 @@
             } else {
                 currentCard.level = 0;
                 currentCard.nextReview = now; 
-                
                 const index = fullDatabase.indexOf(currentCard);
-                if (index > -1) {
-                    fullDatabase.push(fullDatabase.splice(index, 1)[0]);
-                }
+                if (index > -1) fullDatabase.push(fullDatabase.splice(index, 1)[0]);
             }
             saveToStorage();
             locTheCanHoc(); 
@@ -289,8 +263,8 @@
             document.getElementById("totalCount").innerText = fullDatabase.length;
 
             if (studyQueue.length === 0) {
-                frontEl.innerText = fullDatabase.length === 0 ? "Chào Tuấn!" : "🎉 Đã xong!";
-                backMainEl.innerText = fullDatabase.length === 0 ? "Hãy thêm thẻ mới." : "Nghỉ ngơi thôi.";
+                frontEl.innerText = "🎉 Đã xong!";
+                backMainEl.innerText = "Nghỉ ngơi thôi.";
                 viewMode.classList.add("hidden");
                 levelEl.style.display = "none";
                 document.getElementById("reviewButtons").style.visibility = "hidden";
@@ -302,12 +276,17 @@
 
             currentCard = studyQueue[0];
             
+            // --- TÍNH TOÁN THỜI GIAN TIẾP THEO (NEW) ---
+            const nextLv = (currentCard.level || 0) + 1;
+            const days = Math.pow(2, nextLv - 1);
+            timeNextEl.innerText = `(${days} ngày)`;
+
+            // --- UI Setup ---
             document.getElementById("reviewButtons").style.visibility = "visible";
             document.getElementById("audioBar").style.visibility = "visible";
             levelEl.style.display = "inline-block";
             cardElement.classList.remove("is-flipped"); 
             
-            // Reset chế độ xem
             huySua(null);
             viewMode.classList.remove("hidden");
 
@@ -324,14 +303,9 @@
             let cleanText = currentCard.front.replace(/\(.*\)/, "").trim();
             let u = new SpeechSynthesisUtterance(cleanText);
             u.rate = tocDo;
-
-            let bestVoice = voices.find(v => v.name === "Samantha") 
-                          || voices.find(v => v.name.includes("Samantha"))
-                          || voices.find(v => v.name.includes("Google US English"))
-                          || voices.find(v => v.lang === "en-US");
+            let bestVoice = voices.find(v => v.name === "Samantha") || voices.find(v => v.lang === "en-US");
             if (bestVoice) { u.voice = bestVoice; u.lang = bestVoice.lang; } 
             else { u.lang = "en-US"; }
-
             window.speechSynthesis.cancel();
             window.speechSynthesis.speak(u);
         }
@@ -344,11 +318,9 @@
                 try {
                     const data = JSON.parse(e.target.result);
                     if (Array.isArray(data)) {
-                        if(confirm("Dữ liệu cũ sẽ bị thay thế. Bạn chắc không?")) {
-                            fullDatabase = data;
-                            saveToStorage();
-                            locTheCanHoc();
-                            alert("Đã khôi phục thành công!");
+                        if(confirm("Dữ liệu cũ sẽ bị thay thế?")) {
+                            fullDatabase = data; saveToStorage(); locTheCanHoc();
+                            alert("Đã khôi phục!");
                         }
                     }
                 } catch (err) { alert("File lỗi!"); }
@@ -358,7 +330,7 @@
         }
 
         function xuatDuLieu() {
-            if (fullDatabase.length === 0) { alert("Chưa có thẻ nào!"); return; }
+            if (fullDatabase.length === 0) { alert("Chưa có thẻ!"); return; }
             const dataStr = JSON.stringify(fullDatabase, null, 2);
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
@@ -371,7 +343,6 @@
         }
 
         function latThe() { 
-            // Nếu đang sửa thì không cho lật
             if (!editMode.classList.contains("hidden")) return;
             if (currentCard) cardElement.classList.toggle("is-flipped"); 
         }
@@ -379,15 +350,8 @@
         function themThe() {
             const front = document.getElementById("newFront").value;
             const back = document.getElementById("newBack").value;
-
             if (front && back) {
-                fullDatabase.push({ 
-                    id: Date.now(), 
-                    front: front, 
-                    back: back, 
-                    level: 0, 
-                    nextReview: 0 
-                });
+                fullDatabase.push({ id: Date.now(), front: front, back: back, level: 0, nextReview: 0 });
                 saveToStorage();
                 document.getElementById("newFront").value = "";
                 document.getElementById("newBack").value = "";
@@ -396,7 +360,7 @@
         }
         
         function xoaHet() {
-            if(confirm("CẢNH BÁO: Xóa sạch toàn bộ dữ liệu?")) { 
+            if(confirm("Xóa sạch toàn bộ dữ liệu?")) { 
                 fullDatabase = []; saveToStorage(); locTheCanHoc(); 
             }
         }
