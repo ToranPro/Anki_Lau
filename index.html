@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UET Flashcards v15 (Add Delete)</title>
+    <title>UET Flashcards v16 (Edit/Delete Core)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; background-color: #f0f2f5; padding: 20px; color: #333; padding-bottom: 80px; }
         
@@ -45,44 +45,50 @@
         
         #fileInput { display: none; }
 
-        /* --- PHẦN STYLE NX và EDIT --- */
-        .nx-section {
-            margin-top: 10px;
-            font-size: 14px;
-            font-style: italic;
-            border-top: 1px dashed rgba(255,255,255,0.5);
-            padding-top: 8px;
-            width: 100%;
-        }
+        /* --- STYLE CHO PHẦN SỬA/XÓA (MỚI) --- */
         .hidden { display: none !important; }
         
-        /* Container cho các nút nhỏ ở mặt sau */
-        .mini-controls {
+        /* Container nút bấm nhỏ ở mặt sau */
+        .action-bar {
+            margin-top: 15px;
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-top: 5px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(255,255,255,0.4);
+            width: 100%;
         }
 
-        .btn-edit-mini {
-            background: rgba(255,255,255,0.2); border: none; color: white;
-            font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer;
+        .btn-mini {
+            border: none; color: white;
+            font-size: 12px; padding: 5px 10px; border-radius: 4px; cursor: pointer;
+            font-weight: bold;
         }
-        .btn-edit-mini:hover { background: rgba(255,255,255,0.4); }
+        .btn-edit { background: rgba(255,255,255,0.25); }
+        .btn-edit:hover { background: rgba(255,255,255,0.4); }
 
-        /* Style nút xóa mới */
-        .btn-delete-mini {
-            background: rgba(220, 53, 69, 0.8); border: none; color: white;
-            font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer;
-        }
-        .btn-delete-mini:hover { background: #dc3545; }
+        .btn-delete { background: rgba(220, 53, 69, 0.8); }
+        .btn-delete:hover { background: #dc3545; }
 
-        .nx-edit-box {
-            width: 90%; padding: 5px; border-radius: 5px; border: none; font-family: inherit; margin-top: 5px;
+        /* Form sửa thẻ */
+        .edit-form-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: center;
         }
-        .edit-controls { display: flex; gap: 5px; justify-content: center; margin-top: 5px; }
-        .btn-save-mini { background: #fff; color: #4caf50; font-weight: bold; padding: 4px 10px; border:none; border-radius: 4px; cursor: pointer;}
-        .btn-cancel-mini { background: #ff5252; color: white; padding: 4px 10px; border:none; border-radius: 4px; cursor: pointer;}
+        .edit-input {
+            width: 90%;
+            padding: 6px;
+            border-radius: 4px;
+            border: none;
+            font-size: 14px;
+        }
+        .edit-label {
+            font-size: 10px; text-align: left; width: 90%; opacity: 0.8; margin-bottom: -2px;
+        }
+        
     </style>
 </head>
 <body>
@@ -102,24 +108,29 @@
             </div>
 
             <div class="card-face card-back" id="backContentWrapper">
-                <div id="backMainContent" style="font-size: 22px; font-weight: bold;">...</div>
                 
-                <div id="nxDisplay" class="nx-section">
-                    <div id="nxContent">(Chưa có note)</div>
+                <div id="viewMode">
+                    <div id="backMainContent" style="font-size: 22px; font-weight: bold;">...</div>
                     
-                    <div class="mini-controls">
-                        <button class="btn-edit-mini" onclick="toggleEditNX(event)">✏️ Sửa Note</button>
-                        <button class="btn-delete-mini" onclick="xoaTheHienTai(event)">🗑️ Xóa thẻ này</button>
+                    <div class="action-bar">
+                        <button class="btn-mini btn-edit" onclick="moCheDoSua(event)">✏️ Sửa</button>
+                        <button class="btn-mini btn-delete" onclick="xoaThe(event)">🗑️ Xóa</button>
                     </div>
                 </div>
 
-                <div id="nxEditForm" class="nx-section hidden" onclick="event.stopPropagation()">
-                    <textarea id="nxInputEdit" class="nx-edit-box" rows="2"></textarea>
-                    <div class="edit-controls">
-                        <button class="btn-save-mini" onclick="saveNX(event)">Lưu</button>
-                        <button class="btn-cancel-mini" onclick="cancelEdit(event)">Hủy</button>
+                <div id="editMode" class="edit-form-container hidden" onclick="event.stopPropagation()">
+                    <span class="edit-label">Tiếng Anh (Mặt trước):</span>
+                    <input type="text" id="editFrontInput" class="edit-input">
+                    
+                    <span class="edit-label">Tiếng Việt (Mặt sau):</span>
+                    <input type="text" id="editBackInput" class="edit-input">
+
+                    <div style="margin-top: 8px; display: flex; gap:5px;">
+                        <button class="btn-save-mini" style="background:white; color:#4caf50; border:none; padding:5px 10px; border-radius:4px; font-weight:bold; cursor:pointer;" onclick="luuLai(event)">Lưu</button>
+                        <button class="btn-cancel-mini" style="background:#ff5252; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="huySua(event)">Hủy</button>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -138,7 +149,6 @@
         <h3>➕ Thêm thẻ mới</h3>
         <input type="text" id="newFront" placeholder="Mặt trước (Tiếng Anh)">
         <input type="text" id="newBack" placeholder="Mặt sau (Tiếng Việt)">
-        <input type="text" id="newNX" placeholder="Ghi chú/Ví dụ (Không bắt buộc)">
         <button class="btn btn-blue" onclick="themThe()">Lưu Thẻ</button>
     </div>
 
@@ -163,14 +173,16 @@
         const frontEl = document.getElementById("frontContent");
         const backMainEl = document.getElementById("backMainContent");
         const levelEl = document.getElementById("levelDisplay");
-        // Element mới cho NX
-        const nxDisplay = document.getElementById("nxDisplay");
-        const nxContent = document.getElementById("nxContent");
-        const nxEditForm = document.getElementById("nxEditForm");
-        const nxInputEdit = document.getElementById("nxInputEdit");
+        
+        // Element cho edit
+        const viewMode = document.getElementById("viewMode");
+        const editMode = document.getElementById("editMode");
+        const editFrontInput = document.getElementById("editFrontInput");
+        const editBackInput = document.getElementById("editBackInput");
 
         function initApp() {
-            const savedData = localStorage.getItem('myFlashcards_v14'); // Giữ nguyên key v14 để dùng tiếp data cũ
+            // Vẫn dùng key v14 để giữ dữ liệu cũ của bạn
+            const savedData = localStorage.getItem('myFlashcards_v14'); 
             if (savedData) {
                 fullDatabase = JSON.parse(savedData);
             } else if (localStorage.getItem('myFlashcards_v11')) {
@@ -190,54 +202,61 @@
             voices = window.speechSynthesis.getVoices();
         }
 
-        // --- HÀM XÓA THẺ HIỆN TẠI (NEW) ---
-        function xoaTheHienTai(e) {
+        // --- HÀM SỬA / XÓA (CORE) ---
+        function moCheDoSua(e) {
             e.stopPropagation(); // Chặn lật thẻ
-            if (!currentCard) return;
-
-            // Hỏi xác nhận cho chắc
-            if (confirm(`Bạn chắc chắn muốn xóa thẻ "${currentCard.front}" chứ?`)) {
-                // Lọc bỏ thẻ có id trùng với thẻ hiện tại
-                fullDatabase = fullDatabase.filter(c => c.id !== currentCard.id);
-                
-                saveToStorage();
-                alert("Đã xóa!");
-                locTheCanHoc(); // Load lại thẻ khác
-            }
-        }
-
-        // --- CÁC HÀM NX ---
-        function toggleEditNX(e) {
-            e.stopPropagation(); 
-            nxInputEdit.value = currentCard.nx || ""; 
-            nxDisplay.classList.add("hidden");
-            nxEditForm.classList.remove("hidden");
-        }
-
-        function saveNX(e) {
-            e.stopPropagation();
-            currentCard.nx = nxInputEdit.value;
             
+            // Đổ dữ liệu cũ vào ô input
+            editFrontInput.value = currentCard.front;
+            editBackInput.value = currentCard.back;
+
+            // Ẩn nội dung xem, hiện form sửa
+            viewMode.classList.add("hidden");
+            editMode.classList.remove("hidden");
+        }
+
+        function huySua(e) {
+            if(e) e.stopPropagation();
+            editMode.classList.add("hidden");
+            viewMode.classList.remove("hidden");
+        }
+
+        function luuLai(e) {
+            e.stopPropagation();
+
+            // Cập nhật biến tạm
+            currentCard.front = editFrontInput.value;
+            currentCard.back = editBackInput.value;
+
+            // Cập nhật vào mảng chính
             const idx = fullDatabase.findIndex(c => c.id === currentCard.id);
             if (idx !== -1) {
-                fullDatabase[idx].nx = currentCard.nx;
+                fullDatabase[idx].front = currentCard.front;
+                fullDatabase[idx].back = currentCard.back;
                 saveToStorage();
             }
 
-            nxContent.innerText = currentCard.nx || "(Chưa có note)";
-            cancelEdit(e);
+            // Cập nhật giao diện ngay lập tức
+            frontEl.innerText = currentCard.front;
+            backMainEl.innerText = currentCard.back;
+
+            huySua(null);
         }
 
-        function cancelEdit(e) {
-            if(e) e.stopPropagation();
-            nxEditForm.classList.add("hidden");
-            nxDisplay.classList.remove("hidden");
+        function xoaThe(e) {
+            e.stopPropagation();
+            if(confirm(`Xóa thẻ "${currentCard.front}" chứ?`)) {
+                fullDatabase = fullDatabase.filter(c => c.id !== currentCard.id);
+                saveToStorage();
+                locTheCanHoc(); // Load thẻ tiếp theo
+            }
         }
 
         // --- LOGIC FLASHCARD CŨ ---
         function danhGia(nho) {
             if (!currentCard) return;
-            if (!nxEditForm.classList.contains("hidden")) cancelEdit(null);
+            // Nếu đang mở form sửa thì đóng lại
+            if (!editMode.classList.contains("hidden")) huySua(null);
 
             const now = Date.now();
             const oneDay = 24 * 60 * 60 * 1000; 
@@ -272,7 +291,7 @@
             if (studyQueue.length === 0) {
                 frontEl.innerText = fullDatabase.length === 0 ? "Chào Tuấn!" : "🎉 Đã xong!";
                 backMainEl.innerText = fullDatabase.length === 0 ? "Hãy thêm thẻ mới." : "Nghỉ ngơi thôi.";
-                nxDisplay.classList.add("hidden"); 
+                viewMode.classList.add("hidden");
                 levelEl.style.display = "none";
                 document.getElementById("reviewButtons").style.visibility = "hidden";
                 document.getElementById("audioBar").style.visibility = "hidden";
@@ -288,15 +307,13 @@
             levelEl.style.display = "inline-block";
             cardElement.classList.remove("is-flipped"); 
             
-            cancelEdit(null);
+            // Reset chế độ xem
+            huySua(null);
+            viewMode.classList.remove("hidden");
 
             setTimeout(() => {
                 frontEl.innerText = currentCard.front;
                 backMainEl.innerText = currentCard.back;
-                
-                nxDisplay.classList.remove("hidden");
-                nxContent.innerText = currentCard.nx ? currentCard.nx : "(Chưa có note)";
-                
                 levelEl.innerText = "Lv." + (currentCard.level || 0);
             }, 200);
         }
@@ -354,28 +371,26 @@
         }
 
         function latThe() { 
-            if (!nxEditForm.classList.contains("hidden")) return;
+            // Nếu đang sửa thì không cho lật
+            if (!editMode.classList.contains("hidden")) return;
             if (currentCard) cardElement.classList.toggle("is-flipped"); 
         }
 
         function themThe() {
             const front = document.getElementById("newFront").value;
             const back = document.getElementById("newBack").value;
-            const nx = document.getElementById("newNX").value;
 
             if (front && back) {
                 fullDatabase.push({ 
                     id: Date.now(), 
                     front: front, 
                     back: back, 
-                    nx: nx, 
                     level: 0, 
                     nextReview: 0 
                 });
                 saveToStorage();
                 document.getElementById("newFront").value = "";
                 document.getElementById("newBack").value = "";
-                document.getElementById("newNX").value = "";
                 locTheCanHoc();
             }
         }
