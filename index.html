@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UET Flashcards v17 (Smart Timer)</title>
+    <title>UET Flashcards v19 (Rank Liên Quân)</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; background-color: #f0f2f5; padding: 20px; color: #333; padding-bottom: 80px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; background-color: #121212; padding: 20px; color: #e0e0e0; padding-bottom: 80px; }
         
+        /* --- FLASHCARD CONTAINER --- */
         .card-container { perspective: 1000px; margin: 20px auto; width: 300px; height: 220px; cursor: pointer; } 
         .card {
             width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); border-radius: 15px;
         }
         .card.is-flipped { transform: rotateY(180deg); }
         
@@ -19,86 +20,89 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 24px; font-weight: bold; border-radius: 15px; flex-direction: column; padding: 15px; word-wrap: break-word; box-sizing: border-box;
         }
-        .card-front { background: white; color: #333; }
-        .card-back { background: #4caf50; color: white; transform: rotateY(180deg); font-size: 20px; }
+        .card-front { background: #1e1e1e; color: #fff; border: 1px solid #333; }
+        .card-back { background: #2e7d32; color: white; transform: rotateY(180deg); font-size: 20px; }
 
-        /* AUDIO BUTTONS */
+        /* --- RANK BADGE STYLE --- */
+        .rank-badge {
+            margin-top: 10px; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3); letter-spacing: 0.5px;
+        }
+        /* Màu Rank Liên Quân */
+        .rank-dong { background: #cd7f32; color: #fff; border: 1px solid #a0522d; } /* Đồng */
+        .rank-bac { background: #c0c0c0; color: #333; border: 1px solid #a9a9a9; } /* Bạc */
+        .rank-vang { background: #ffd700; color: #b8860b; border: 1px solid #daa520; box-shadow: 0 0 10px #ffd700; } /* Vàng */
+        .rank-bachkim { background: #00ced1; color: #fff; border: 1px solid #008b8b; } /* Bạch Kim */
+        .rank-kimcuong { background: #b9f2ff; color: #0047ab; border: 1px solid #fff; box-shadow: 0 0 8px #fff; } /* Kim Cương */
+        .rank-tinhanh { background: #ff4500; color: #fff; border: 1px solid #8b0000; } /* Tinh Anh */
+        .rank-caothu { background: #800080; color: #fff; border: 1px solid #ffd700; box-shadow: 0 0 10px #800080; } /* Cao Thủ */
+        .rank-thachdau { background: linear-gradient(45deg, #ff0000, #ffff00); color: #000; font-weight: 900; border: 2px solid #fff; } /* Thách Đấu */
+
+        /* --- STATS BOARD --- */
+        .stats-board {
+            background: #1e1e1e; padding: 10px; border-radius: 8px; margin-bottom: 20px;
+            font-size: 12px; color: #aaa; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+            border: 1px solid #333;
+        }
+        .stat-item { display: flex; align-items: center; gap: 3px; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+        /* --- OTHER UI --- */
+        .status-bar { margin-bottom: 15px; font-size: 14px; color: #888; }
+        .countdown-text { color: #4caf50; font-weight: bold; margin-top: 5px; font-size: 14px; }
+
         .audio-controls { margin-top: 10px; display: flex; justify-content: center; gap: 10px; }
-        .btn-audio { background: #fff; border: 1px solid #ddd; padding: 8px 15px; border-radius: 20px; font-size: 14px; cursor: pointer; color: #333; font-weight: 600; }
-        .btn-audio:active { background: #e2e6ea; }
+        .btn-audio { background: #333; border: 1px solid #555; padding: 8px 15px; border-radius: 20px; font-size: 14px; cursor: pointer; color: #fff; }
+        .btn-audio:active { background: #555; }
         
-        /* MAIN BUTTONS (Đã sửa lại để hiển thị 2 dòng) */
         .controls { margin-top: 20px; display: flex; justify-content: center; gap: 15px; }
         .btn { 
             padding: 8px 20px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; min-width: 100px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            line-height: 1.2;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;
         }
-        
         .btn-subtext { font-size: 11px; font-weight: normal; opacity: 0.9; margin-top: 2px; }
 
-        .btn-forgot { background: #dc3545; }
-        .btn-remember { background: #28a745; }
-        
-        .btn-blue { background: #007bff; width: 100%; margin-top: 10px; padding: 12px;}
-        .btn-gray { background: #6c757d; width: 100%; margin-top: 5px; padding: 12px;}
-        .btn-purple { background: #6f42c1; width: 100%; margin-bottom: 5px; padding: 12px;}
+        .btn-forgot { background: #cf6679; color: #000; }
+        .btn-remember { background: #03dac6; color: #000; }
+        .btn-blue { background: #2196f3; width: 100%; margin-top: 10px; padding: 12px;}
+        .btn-gray { background: #616161; width: 100%; margin-top: 5px; padding: 12px;}
+        .btn-purple { background: #bb86fc; width: 100%; margin-bottom: 5px; padding: 12px; color: #000;}
 
-        .add-section { margin-top: 30px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        input[type="text"] { padding: 10px; margin: 5px; width: 85%; border: 1px solid #ddd; border-radius: 5px; }
-        
-        .status-bar { margin-bottom: 15px; font-size: 14px; color: #666; }
-        .level-badge { background: #eee; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-top: 5px; color: #555;}
+        .add-section { margin-top: 30px; background: #1e1e1e; padding: 20px; border-radius: 10px; border: 1px solid #333; }
+        h3 { color: #fff; margin-top: 0; }
+        input[type="text"] { padding: 10px; margin: 5px; width: 85%; border: 1px solid #444; border-radius: 5px; background: #2c2c2c; color: white; }
         
         #fileInput { display: none; }
-
         .hidden { display: none !important; }
-        
-        /* Action bar for Edit/Delete */
-        .action-bar {
-            margin-top: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed rgba(255,255,255,0.4);
-            width: 100%;
-        }
 
-        .btn-mini {
-            border: none; color: white;
-            font-size: 12px; padding: 5px 10px; border-radius: 4px; cursor: pointer;
-            font-weight: bold;
-        }
-        .btn-edit { background: rgba(255,255,255,0.25); }
-        .btn-edit:hover { background: rgba(255,255,255,0.4); }
-
-        .btn-delete { background: rgba(220, 53, 69, 0.8); }
-        .btn-delete:hover { background: #dc3545; }
-
-        /* Edit Form */
-        .edit-form-container {
-            width: 100%; display: flex; flex-direction: column; gap: 5px; align-items: center;
-        }
-        .edit-input { width: 90%; padding: 6px; border-radius: 4px; border: none; font-size: 14px; }
+        /* Action bar & Edit Mode */
+        .action-bar { margin-top: 15px; display: flex; justify-content: center; gap: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.4); width: 100%; }
+        .btn-mini { border: none; color: white; font-size: 12px; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-edit { background: rgba(255,255,255,0.2); }
+        .btn-delete { background: rgba(207, 102, 121, 0.8); }
+        .edit-form-container { width: 100%; display: flex; flex-direction: column; gap: 5px; align-items: center; }
+        .edit-input { width: 90%; padding: 6px; border-radius: 4px; border: none; font-size: 14px; background: #fff; color: #000; }
         .edit-label { font-size: 10px; text-align: left; width: 90%; opacity: 0.8; margin-bottom: -2px; }
-        
     </style>
 </head>
 <body>
 
-    <h2>⚡ Flashcard Của Tuấn</h2>
+    <h2 style="color: #bb86fc;">⚔️ Flashcard Rank</h2>
     
+    <div class="stats-board" id="statsBoard">
+        Loading stats...
+    </div>
+
     <div class="status-bar">
-        Cần học: <b id="dueCount" style="color:red">0</b> 
-        (Tổng: <span id="totalCount">0</span>)
+        Cần leo rank: <b id="dueCount" style="color:#cf6679">0</b> 
+        (Tổng quân số: <span id="totalCount">0</span>)
     </div>
 
     <div class="card-container" onclick="latThe()">
         <div class="card" id="flashcard">
             <div class="card-face card-front">
                 <span id="frontContent">Loading...</span>
-                <span class="level-badge" id="levelDisplay">Lv.0</span>
+                <span class="rank-badge rank-dong" id="rankDisplay">Đồng</span>
             </div>
 
             <div class="card-face card-back" id="backContentWrapper">
@@ -116,12 +120,18 @@
                     <span class="edit-label">Tiếng Việt:</span>
                     <input type="text" id="editBackInput" class="edit-input">
                     <div style="margin-top: 8px; display: flex; gap:5px;">
-                        <button class="btn-mini" style="background:white; color:#4caf50;" onclick="luuLai(event)">Lưu</button>
-                        <button class="btn-mini" style="background:#ff5252;" onclick="huySua(event)">Hủy</button>
+                        <button class="btn-mini" style="background:#03dac6; color:black;" onclick="luuLai(event)">Lưu</button>
+                        <button class="btn-mini" style="background:#cf6679;" onclick="huySua(event)">Hủy</button>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <div id="waitMessage" class="hidden">
+        <h3 style="color: #03dac6;">🎉 Đã hoàn thành nhiệm vụ!</h3>
+        <p>Thẻ tiếp theo sẽ xuất hiện sau:</p>
+        <div id="countdownTimer" style="font-size: 20px; font-weight: bold; color: #bb86fc;">00:00:00</div>
     </div>
 
     <div class="audio-controls" id="audioBar">
@@ -132,7 +142,7 @@
     <div class="controls" id="reviewButtons">
         <button class="btn btn-forgot" id="btnForgot" onclick="danhGia(false)">
             ❌ Quên
-            <span class="btn-subtext">(Ngay)</span>
+            <span class="btn-subtext">(Về Đồng)</span>
         </button>
         <button class="btn btn-remember" id="btnRemember" onclick="danhGia(true)">
             ✅ Nhớ
@@ -152,7 +162,7 @@
         <button class="btn btn-purple" onclick="xuatDuLieu()">⬇️ Tải Backup</button>
         <button class="btn btn-gray" onclick="document.getElementById('fileInput').click()">⬆️ Khôi phục</button>
         <input type="file" id="fileInput" accept=".json" onchange="nhapDuLieu(this)">
-        <button class="btn btn-forgot" style="margin-top:20px; background:#dc3545;" onclick="xoaHet()">🗑️ Xóa tất cả</button>
+        <button class="btn btn-forgot" style="margin-top:20px;" onclick="xoaHet()">🗑️ Xóa tất cả</button>
     </div>
 
     <script>
@@ -164,16 +174,34 @@
         const cardElement = document.getElementById("flashcard");
         const frontEl = document.getElementById("frontContent");
         const backMainEl = document.getElementById("backMainContent");
-        const levelEl = document.getElementById("levelDisplay");
+        const rankEl = document.getElementById("rankDisplay"); // Rank Display
+        const statsBoard = document.getElementById("statsBoard");
+        const waitMessage = document.getElementById("waitMessage");
+        const countdownTimer = document.getElementById("countdownTimer");
         
-        // Edit elements
         const viewMode = document.getElementById("viewMode");
         const editMode = document.getElementById("editMode");
         const editFrontInput = document.getElementById("editFrontInput");
         const editBackInput = document.getElementById("editBackInput");
-        
-        // Text dự báo thời gian
         const timeNextEl = document.getElementById("timeNext");
+
+        // --- CẤU HÌNH RANK ---
+        const RANKS = [
+            { name: "Đồng", class: "rank-dong", color: "#cd7f32" },      // Lv 0
+            { name: "Bạc", class: "rank-bac", color: "#c0c0c0" },        // Lv 1
+            { name: "Vàng", class: "rank-vang", color: "#ffd700" },      // Lv 2
+            { name: "Bạch Kim", class: "rank-bachkim", color: "#00ced1" }, // Lv 3
+            { name: "Kim Cương", class: "rank-kimcuong", color: "#b9f2ff" },// Lv 4
+            { name: "Tinh Anh", class: "rank-tinhanh", color: "#ff4500" },  // Lv 5
+            { name: "Cao Thủ", class: "rank-caothu", color: "#800080" },    // Lv 6
+            { name: "Thách Đấu", class: "rank-thachdau", color: "#ff0000" } // Lv 7+
+        ];
+
+        function getRankInfo(level) {
+            if (!level) level = 0;
+            if (level >= 7) return RANKS[7];
+            return RANKS[level];
+        }
 
         function initApp() {
             const savedData = localStorage.getItem('myFlashcards_v14'); 
@@ -190,44 +218,29 @@
             if (speechSynthesis.onvoiceschanged !== undefined) {
                 speechSynthesis.onvoiceschanged = loadVoices;
             }
+            
+            // Cập nhật đếm ngược mỗi giây
+            setInterval(updateCountdown, 1000);
         }
 
         function loadVoices() { voices = window.speechSynthesis.getVoices(); }
 
-        // --- CORE EDIT/DELETE ---
-        function moCheDoSua(e) {
-            e.stopPropagation(); 
-            editFrontInput.value = currentCard.front;
-            editBackInput.value = currentCard.back;
-            viewMode.classList.add("hidden");
-            editMode.classList.remove("hidden");
-        }
-        function huySua(e) {
-            if(e) e.stopPropagation();
-            editMode.classList.add("hidden");
-            viewMode.classList.remove("hidden");
-        }
-        function luuLai(e) {
-            e.stopPropagation();
-            currentCard.front = editFrontInput.value;
-            currentCard.back = editBackInput.value;
-            const idx = fullDatabase.findIndex(c => c.id === currentCard.id);
-            if (idx !== -1) {
-                fullDatabase[idx].front = currentCard.front;
-                fullDatabase[idx].back = currentCard.back;
-                saveToStorage();
-            }
-            frontEl.innerText = currentCard.front;
-            backMainEl.innerText = currentCard.back;
-            huySua(null);
-        }
-        function xoaThe(e) {
-            e.stopPropagation();
-            if(confirm(`Xóa thẻ "${currentCard.front}" chứ?`)) {
-                fullDatabase = fullDatabase.filter(c => c.id !== currentCard.id);
-                saveToStorage();
-                locTheCanHoc();
-            }
+        // --- THỐNG KÊ RANK ---
+        function updateStats() {
+            let counts = [0, 0, 0, 0, 0, 0, 0, 0]; // 8 cấp rank
+            fullDatabase.forEach(c => {
+                let lv = c.level || 0;
+                if (lv > 7) lv = 7;
+                counts[lv]++;
+            });
+
+            let html = "";
+            RANKS.forEach((r, idx) => {
+                if (counts[idx] > 0 || idx < 3) { // Luôn hiện 3 rank đầu
+                    html += `<div class="stat-item"><span class="dot" style="background:${r.color}"></span> ${r.name}: <b>${counts[idx]}</b></div>`;
+                }
+            });
+            statsBoard.innerHTML = html;
         }
 
         // --- FLASHCARD LOGIC ---
@@ -235,16 +248,21 @@
             if (!currentCard) return;
             if (!editMode.classList.contains("hidden")) huySua(null);
 
-            const now = Date.now();
-            const oneDay = 24 * 60 * 60 * 1000; 
+            const now = new Date(); 
 
             if (nho) {
                 currentCard.level = (currentCard.level || 0) + 1;
                 let daysToAdd = Math.pow(2, currentCard.level - 1); 
-                currentCard.nextReview = now + (daysToAdd * oneDay);
+                
+                // Logic: Qua ngày là có
+                let nextDate = new Date();
+                nextDate.setDate(now.getDate() + daysToAdd);
+                nextDate.setHours(0, 0, 0, 0); 
+                
+                currentCard.nextReview = nextDate.getTime();
             } else {
-                currentCard.level = 0;
-                currentCard.nextReview = now; 
+                currentCard.level = 0; // Về Đồng
+                currentCard.nextReview = now.getTime();
                 const index = fullDatabase.indexOf(currentCard);
                 if (index > -1) fullDatabase.push(fullDatabase.splice(index, 1)[0]);
             }
@@ -255,6 +273,7 @@
         function locTheCanHoc() {
             const now = Date.now();
             studyQueue = fullDatabase.filter(card => !card.nextReview || card.nextReview <= now);
+            updateStats(); // Cập nhật bảng thống kê
             updateUI();
         }
 
@@ -263,40 +282,76 @@
             document.getElementById("totalCount").innerText = fullDatabase.length;
 
             if (studyQueue.length === 0) {
-                frontEl.innerText = "🎉 Đã xong!";
-                backMainEl.innerText = "Nghỉ ngơi thôi.";
-                viewMode.classList.add("hidden");
-                levelEl.style.display = "none";
-                document.getElementById("reviewButtons").style.visibility = "hidden";
-                document.getElementById("audioBar").style.visibility = "hidden";
-                cardElement.classList.remove("is-flipped");
-                currentCard = null;
+                // HẾT THẺ
+                cardElement.style.display = "none";
+                document.getElementById("reviewButtons").style.display = "none";
+                document.getElementById("audioBar").style.display = "none";
+                waitMessage.classList.remove("hidden");
+                updateCountdown(); // Cập nhật giờ ngay
                 return;
             }
 
+            // CÒN THẺ
+            cardElement.style.display = "block";
+            document.getElementById("reviewButtons").style.display = "flex";
+            document.getElementById("audioBar").style.display = "flex";
+            waitMessage.classList.add("hidden");
+
             currentCard = studyQueue[0];
             
-            // --- TÍNH TOÁN THỜI GIAN TIẾP THEO (NEW) ---
+            // Xử lý Rank Badge
+            const rInfo = getRankInfo(currentCard.level);
+            rankEl.innerText = rInfo.name;
+            rankEl.className = "rank-badge " + rInfo.class;
+
+            // Xử lý nút bấm
             const nextLv = (currentCard.level || 0) + 1;
             const days = Math.pow(2, nextLv - 1);
-            timeNextEl.innerText = `(${days} ngày)`;
+            timeNextEl.innerText = `(+${days}d)`; // +1d, +2d
 
-            // --- UI Setup ---
-            document.getElementById("reviewButtons").style.visibility = "visible";
-            document.getElementById("audioBar").style.visibility = "visible";
-            levelEl.style.display = "inline-block";
             cardElement.classList.remove("is-flipped"); 
-            
             huySua(null);
             viewMode.classList.remove("hidden");
 
             setTimeout(() => {
                 frontEl.innerText = currentCard.front;
                 backMainEl.innerText = currentCard.back;
-                levelEl.innerText = "Lv." + (currentCard.level || 0);
             }, 200);
         }
 
+        // --- ĐẾM NGƯỢC THỜI GIAN CHỜ ---
+        function updateCountdown() {
+            if (studyQueue.length > 0) {
+                countdownTimer.innerText = "Đang học...";
+                return;
+            }
+            if (fullDatabase.length === 0) {
+                countdownTimer.innerText = "Chưa có thẻ nào!";
+                return;
+            }
+
+            // Tìm thời gian review gần nhất trong tương lai
+            const now = Date.now();
+            let minTime = Infinity;
+            
+            fullDatabase.forEach(c => {
+                if (c.nextReview > now && c.nextReview < minTime) {
+                    minTime = c.nextReview;
+                }
+            });
+
+            if (minTime === Infinity) {
+                 countdownTimer.innerText = "Hoàn thành! (Vui lòng thêm thẻ mới)";
+            } else {
+                let diff = minTime - now;
+                let hh = Math.floor(diff / (1000 * 60 * 60));
+                let mm = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                let ss = Math.floor((diff % (1000 * 60)) / 1000);
+                countdownTimer.innerText = `${hh} giờ ${mm} phút ${ss} giây`;
+            }
+        }
+
+        // --- CÁC HÀM CŨ ---
         function docTiengAnh(tocDo = 1.0, event) {
             if (event) event.stopPropagation();
             if (!currentCard) return;
@@ -310,64 +365,22 @@
             window.speechSynthesis.speak(u);
         }
 
-        function nhapDuLieu(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (Array.isArray(data)) {
-                        if(confirm("Dữ liệu cũ sẽ bị thay thế?")) {
-                            fullDatabase = data; saveToStorage(); locTheCanHoc();
-                            alert("Đã khôi phục!");
-                        }
-                    }
-                } catch (err) { alert("File lỗi!"); }
-            };
-            reader.readAsText(file);
-            input.value = ''; 
+        function moCheDoSua(e) { e.stopPropagation(); editFrontInput.value = currentCard.front; editBackInput.value = currentCard.back; viewMode.classList.add("hidden"); editMode.classList.remove("hidden"); }
+        function huySua(e) { if(e) e.stopPropagation(); editMode.classList.add("hidden"); viewMode.classList.remove("hidden"); }
+        function luuLai(e) {
+            e.stopPropagation(); currentCard.front = editFrontInput.value; currentCard.back = editBackInput.value;
+            const idx = fullDatabase.findIndex(c => c.id === currentCard.id);
+            if (idx !== -1) { fullDatabase[idx].front = currentCard.front; fullDatabase[idx].back = currentCard.back; saveToStorage(); }
+            frontEl.innerText = currentCard.front; backMainEl.innerText = currentCard.back; huySua(null);
+            locTheCanHoc(); // Cập nhật lại UI để hiện đúng Rank
         }
-
-        function xuatDuLieu() {
-            if (fullDatabase.length === 0) { alert("Chưa có thẻ!"); return; }
-            const dataStr = JSON.stringify(fullDatabase, null, 2);
-            const blob = new Blob([dataStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "backup_" + new Date().toISOString().slice(0,10) + ".json";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
-        function latThe() { 
-            if (!editMode.classList.contains("hidden")) return;
-            if (currentCard) cardElement.classList.toggle("is-flipped"); 
-        }
-
-        function themThe() {
-            const front = document.getElementById("newFront").value;
-            const back = document.getElementById("newBack").value;
-            if (front && back) {
-                fullDatabase.push({ id: Date.now(), front: front, back: back, level: 0, nextReview: 0 });
-                saveToStorage();
-                document.getElementById("newFront").value = "";
-                document.getElementById("newBack").value = "";
-                locTheCanHoc();
-            }
-        }
-        
-        function xoaHet() {
-            if(confirm("Xóa sạch toàn bộ dữ liệu?")) { 
-                fullDatabase = []; saveToStorage(); locTheCanHoc(); 
-            }
-        }
-
-        function saveToStorage() {
-            localStorage.setItem('myFlashcards_v14', JSON.stringify(fullDatabase));
-        }
+        function xoaThe(e) { e.stopPropagation(); if(confirm(`Xóa thẻ "${currentCard.front}" chứ?`)) { fullDatabase = fullDatabase.filter(c => c.id !== currentCard.id); saveToStorage(); locTheCanHoc(); } }
+        function nhapDuLieu(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const data = JSON.parse(e.target.result); if (Array.isArray(data)) { if(confirm("Dữ liệu cũ sẽ bị thay thế?")) { fullDatabase = data; saveToStorage(); locTheCanHoc(); alert("Đã khôi phục!"); } } } catch (err) { alert("File lỗi!"); } }; reader.readAsText(file); input.value = ''; }
+        function xuatDuLieu() { if (fullDatabase.length === 0) { alert("Chưa có thẻ!"); return; } const dataStr = JSON.stringify(fullDatabase, null, 2); const blob = new Blob([dataStr], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "backup_" + new Date().toISOString().slice(0,10) + ".json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+        function latThe() { if (!editMode.classList.contains("hidden")) return; if (currentCard) cardElement.classList.toggle("is-flipped"); }
+        function themThe() { const front = document.getElementById("newFront").value; const back = document.getElementById("newBack").value; if (front && back) { fullDatabase.push({ id: Date.now(), front: front, back: back, level: 0, nextReview: 0 }); saveToStorage(); document.getElementById("newFront").value = ""; document.getElementById("newBack").value = ""; locTheCanHoc(); } }
+        function xoaHet() { if(confirm("Xóa sạch toàn bộ dữ liệu?")) { fullDatabase = []; saveToStorage(); locTheCanHoc(); } }
+        function saveToStorage() { localStorage.setItem('myFlashcards_v14', JSON.stringify(fullDatabase)); }
 
         initApp();
     </script>
