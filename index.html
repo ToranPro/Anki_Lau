@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UET Flashcards v8 (Full Options)</title>
+    <title>UET Flashcards v9 (Clean)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; background-color: #f0f2f5; padding: 20px; color: #333; padding-bottom: 80px; }
         
@@ -33,9 +33,8 @@
         .btn-forgot { background: #dc3545; }
         .btn-remember { background: #28a745; }
         .btn-blue { background: #007bff; width: 100%; margin-top: 10px;}
-        .btn-orange { background: #fd7e14; color: white; width: 100%; margin-bottom: 10px;}
         .btn-gray { background: #6c757d; width: 100%; margin-top: 5px;}
-        .btn-purple { background: #6f42c1; width: 100%; }
+        .btn-purple { background: #6f42c1; width: 100%; margin-bottom: 5px;}
 
         .add-section { margin-top: 30px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         input[type="text"] { padding: 10px; margin: 5px; width: 85%; border: 1px solid #ddd; border-radius: 5px; }
@@ -43,12 +42,12 @@
         .status-bar { margin-bottom: 15px; font-size: 14px; color: #666; }
         .level-badge { background: #eee; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-top: 5px; color: #555;}
         
-        #fileInput { display: none; } /* Ẩn nút chọn file gốc */
+        #fileInput { display: none; }
     </style>
 </head>
 <body>
 
-    <h2>⚡ Flashcard Ultimate</h2>
+    <h2>⚡ Flashcard Của Tôi</h2>
     
     <div class="status-bar">
         Cần học: <b id="dueCount" style="color:red">0</b> 
@@ -76,46 +75,24 @@
     </div>
 
     <div class="add-section">
-        <h3>📂 Quản lý Dữ liệu</h3>
-        
-        <button class="btn btn-orange" onclick="napDuLieuMau()">🔄 Nạp nhanh 15 từ IT (Có sẵn)</button>
-        
-        <hr style="margin: 15px 0; border: 0; border-top: 1px dashed #ccc;">
-
-        <button class="btn btn-purple" onclick="xuatDuLieu()">⬇️ Tải file Backup (.json)</button>
-        <button class="btn btn-gray" onclick="document.getElementById('fileInput').click()">⬆️ Chọn file để khôi phục</button>
-        <input type="file" id="fileInput" accept=".json" onchange="nhapDuLieu(this)">
-
-        <button class="btn btn-forgot" style="margin-top:15px; background:#dc3545" onclick="xoaHet()">🗑️ Xóa sạch tất cả</button>
-    </div>
-
-    <div class="add-section">
-        <h3>➕ Thêm thẻ thủ công</h3>
+        <h3>➕ Thêm thẻ mới</h3>
         <input type="text" id="newFront" placeholder="Mặt trước (Tiếng Anh)">
         <input type="text" id="newBack" placeholder="Mặt sau (Tiếng Việt)">
         <button class="btn btn-blue" onclick="themThe()">Lưu Thẻ</button>
     </div>
 
-    <script>
-        // Dữ liệu mẫu (Hardcoded)
-        const sampleData = [
-            { id: 1, front: "Firewall", back: "Tường lửa" },
-            { id: 2, front: "Malware", back: "Phần mềm độc hại" },
-            { id: 3, front: "Phishing", back: "Tấn công lừa đảo" },
-            { id: 4, front: "Encrypt", back: "Mã hóa" },
-            { id: 5, front: "Vulnerability", back: "Lỗ hổng bảo mật" },
-            { id: 6, front: "Optimize", back: "Tối ưu hóa" },
-            { id: 7, front: "Compatible", back: "Tương thích" },
-            { id: 8, front: "Bottleneck", back: "Nghẽn cổ chai" },
-            { id: 9, front: "Overheat", back: "Quá nhiệt" },
-            { id: 10, front: "Capacity", back: "Dung lượng" },
-            { id: 11, front: "Latency", back: "Độ trễ (Ping)" },
-            { id: 12, front: "Maintenance", back: "Bảo trì" },
-            { id: 13, front: "Access", back: "Truy cập" },
-            { id: 14, front: "Bandwidth", back: "Băng thông" },
-            { id: 15, front: "Stable", back: "Ổn định" }
-        ];
+    <div class="add-section">
+        <h3>📂 Sao lưu & Khôi phục</h3>
+        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Dùng file .json để lưu trữ dữ liệu của bạn</p>
+        
+        <button class="btn btn-purple" onclick="xuatDuLieu()">⬇️ Tải file Backup</button>
+        <button class="btn btn-gray" onclick="document.getElementById('fileInput').click()">⬆️ Chọn file để khôi phục</button>
+        <input type="file" id="fileInput" accept=".json" onchange="nhapDuLieu(this)">
 
+        <button class="btn btn-forgot" style="margin-top:20px; background:#dc3545; font-size: 14px" onclick="xoaHet()">🗑️ Xóa sạch tất cả</button>
+    </div>
+
+    <script>
         let fullDatabase = [];
         let studyQueue = [];
         let currentCard = null;
@@ -126,7 +103,8 @@
         const levelEl = document.getElementById("levelDisplay");
 
         function initApp() {
-            const savedData = localStorage.getItem('myFlashcards_v8');
+            // Đổi tên key để tránh xung đột với bản cũ
+            const savedData = localStorage.getItem('myFlashcards_v9');
             if (savedData) {
                 fullDatabase = JSON.parse(savedData);
             } else {
@@ -135,19 +113,7 @@
             locTheCanHoc();
         }
 
-        // --- 1. CHỨC NĂNG NẠP DỮ LIỆU ---
-        
-        // Cách 1: Nạp từ code (Nhanh)
-        function napDuLieuMau() {
-            if(confirm("Nạp 15 từ vựng IT vào máy?")) {
-                fullDatabase = sampleData.map(item => ({ ...item, level: 0, nextReview: 0 }));
-                saveToStorage();
-                locTheCanHoc();
-                alert("Đã nạp xong!");
-            }
-        }
-
-        // Cách 2: Nạp từ file JSON (Restore)
+        // --- 1. XỬ LÝ FILE (Backup/Restore) ---
         function nhapDuLieu(input) {
             const file = input.files[0];
             if (!file) return;
@@ -156,11 +122,11 @@
                 try {
                     const data = JSON.parse(e.target.result);
                     if (Array.isArray(data)) {
-                        if(confirm("Khôi phục dữ liệu từ file này?")) {
+                        if(confirm("Dữ liệu cũ sẽ bị thay thế bằng file này. Bạn chắc không?")) {
                             fullDatabase = data;
                             saveToStorage();
                             locTheCanHoc();
-                            alert("Đã khôi phục thành công!");
+                            alert("Đã khôi phục thành công! (" + data.length + " thẻ)");
                         }
                     }
                 } catch (err) { alert("File lỗi!"); }
@@ -169,14 +135,17 @@
             input.value = ''; 
         }
 
-        // Backup dữ liệu
         function xuatDuLieu() {
+            if (fullDatabase.length === 0) {
+                alert("Chưa có thẻ nào để backup!");
+                return;
+            }
             const dataStr = JSON.stringify(fullDatabase, null, 2);
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = "backup_flashcard_" + new Date().toISOString().slice(0,10) + ".json";
+            a.download = "backup_" + new Date().toISOString().slice(0,10) + ".json";
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -195,7 +164,7 @@
 
             if (studyQueue.length === 0) {
                 frontEl.innerText = fullDatabase.length === 0 ? "Chào bạn!" : "🎉 Đã xong!";
-                backEl.innerText = fullDatabase.length === 0 ? "Chưa có dữ liệu." : "Nghỉ ngơi thôi.";
+                backEl.innerText = fullDatabase.length === 0 ? "Hãy thêm thẻ mới bên dưới." : "Nghỉ ngơi thôi.";
                 levelEl.style.display = "none";
                 document.getElementById("reviewButtons").style.visibility = "hidden";
                 document.getElementById("audioBar").style.visibility = "hidden";
@@ -251,11 +220,13 @@
         }
         
         function xoaHet() {
-            if(confirm("Xóa sạch toàn bộ?")) { fullDatabase = []; saveToStorage(); locTheCanHoc(); }
+            if(confirm("CẢNH BÁO: Xóa sạch toàn bộ dữ liệu?")) { 
+                fullDatabase = []; saveToStorage(); locTheCanHoc(); 
+            }
         }
 
         function saveToStorage() {
-            localStorage.setItem('myFlashcards_v8', JSON.stringify(fullDatabase));
+            localStorage.setItem('myFlashcards_v9', JSON.stringify(fullDatabase));
         }
 
         function docTiengAnh(tocDo = 1.0, event) {
