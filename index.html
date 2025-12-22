@@ -3,12 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UET Flashcards v19 (Rank Liên Quân)</title>
+    <title>UET Flashcards v20 (Grandmaster Rank)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; background-color: #121212; padding: 20px; color: #e0e0e0; padding-bottom: 80px; }
         
-        /* --- FLASHCARD CONTAINER --- */
-        .card-container { perspective: 1000px; margin: 20px auto; width: 300px; height: 220px; cursor: pointer; } 
+        /* --- PLAYER RANK HEADER (NEW) --- */
+        .player-profile {
+            background: linear-gradient(145deg, #1e1e1e, #252525);
+            padding: 15px; border-radius: 12px; border: 1px solid #333;
+            margin-bottom: 20px; display: inline-block; min-width: 300px;
+        }
+        .player-rank-title { font-size: 18px; color: #aaa; margin-bottom: 5px; }
+        .current-rank { font-size: 28px; font-weight: 900; text-transform: uppercase; margin: 5px 0; letter-spacing: 1px; }
+        .total-score { font-size: 14px; color: #888; }
+        .rank-progress-bar { width: 100%; height: 6px; background: #333; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+        .rank-progress-fill { height: 100%; background: #03dac6; width: 0%; transition: width 0.5s; }
+
+        /* --- FLASHCARD --- */
+        .card-container { perspective: 1000px; margin: 20px auto; width: 300px; height: 260px; cursor: pointer; } /* Tăng chiều cao thẻ chút */
         .card {
             width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5); border-radius: 15px;
@@ -18,42 +30,25 @@
         .card-face {
             position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
             display: flex; align-items: center; justify-content: center;
-            font-size: 24px; font-weight: bold; border-radius: 15px; flex-direction: column; padding: 15px; word-wrap: break-word; box-sizing: border-box;
+            font-size: 20px; font-weight: bold; border-radius: 15px; flex-direction: column; padding: 20px; 
+            word-wrap: break-word; box-sizing: border-box;
+            white-space: pre-wrap; /* QUAN TRỌNG: Để hiển thị xuống dòng */
+            overflow-y: auto; /* Nếu dài quá thì cuộn */
         }
         .card-front { background: #1e1e1e; color: #fff; border: 1px solid #333; }
-        .card-back { background: #2e7d32; color: white; transform: rotateY(180deg); font-size: 20px; }
+        .card-back { background: #2e7d32; color: white; transform: rotateY(180deg); font-size: 18px; }
 
-        /* --- RANK BADGE STYLE --- */
-        .rank-badge {
-            margin-top: 10px; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3); letter-spacing: 0.5px;
+        /* Badge Rank trên thẻ */
+        .card-rank-badge {
+            margin-top: 10px; padding: 3px 10px; border-radius: 10px; font-size: 11px; 
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);
         }
-        /* Màu Rank Liên Quân */
-        .rank-dong { background: #cd7f32; color: #fff; border: 1px solid #a0522d; } /* Đồng */
-        .rank-bac { background: #c0c0c0; color: #333; border: 1px solid #a9a9a9; } /* Bạc */
-        .rank-vang { background: #ffd700; color: #b8860b; border: 1px solid #daa520; box-shadow: 0 0 10px #ffd700; } /* Vàng */
-        .rank-bachkim { background: #00ced1; color: #fff; border: 1px solid #008b8b; } /* Bạch Kim */
-        .rank-kimcuong { background: #b9f2ff; color: #0047ab; border: 1px solid #fff; box-shadow: 0 0 8px #fff; } /* Kim Cương */
-        .rank-tinhanh { background: #ff4500; color: #fff; border: 1px solid #8b0000; } /* Tinh Anh */
-        .rank-caothu { background: #800080; color: #fff; border: 1px solid #ffd700; box-shadow: 0 0 10px #800080; } /* Cao Thủ */
-        .rank-thachdau { background: linear-gradient(45deg, #ff0000, #ffff00); color: #000; font-weight: 900; border: 2px solid #fff; } /* Thách Đấu */
 
-        /* --- STATS BOARD --- */
-        .stats-board {
-            background: #1e1e1e; padding: 10px; border-radius: 8px; margin-bottom: 20px;
-            font-size: 12px; color: #aaa; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
-            border: 1px solid #333;
-        }
-        .stat-item { display: flex; align-items: center; gap: 3px; }
-        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-
-        /* --- OTHER UI --- */
+        /* --- UI ELEMENTS --- */
         .status-bar { margin-bottom: 15px; font-size: 14px; color: #888; }
-        .countdown-text { color: #4caf50; font-weight: bold; margin-top: 5px; font-size: 14px; }
-
+        
         .audio-controls { margin-top: 10px; display: flex; justify-content: center; gap: 10px; }
         .btn-audio { background: #333; border: 1px solid #555; padding: 8px 15px; border-radius: 20px; font-size: 14px; cursor: pointer; color: #fff; }
-        .btn-audio:active { background: #555; }
         
         .controls { margin-top: 20px; display: flex; justify-content: center; gap: 15px; }
         .btn { 
@@ -61,18 +56,23 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;
         }
         .btn-subtext { font-size: 11px; font-weight: normal; opacity: 0.9; margin-top: 2px; }
-
         .btn-forgot { background: #cf6679; color: #000; }
         .btn-remember { background: #03dac6; color: #000; }
+        
         .btn-blue { background: #2196f3; width: 100%; margin-top: 10px; padding: 12px;}
         .btn-gray { background: #616161; width: 100%; margin-top: 5px; padding: 12px;}
         .btn-purple { background: #bb86fc; width: 100%; margin-bottom: 5px; padding: 12px; color: #000;}
 
+        /* --- ADD SECTION (TEXTAREA) --- */
         .add-section { margin-top: 30px; background: #1e1e1e; padding: 20px; border-radius: 10px; border: 1px solid #333; }
-        h3 { color: #fff; margin-top: 0; }
-        input[type="text"] { padding: 10px; margin: 5px; width: 85%; border: 1px solid #444; border-radius: 5px; background: #2c2c2c; color: white; }
         
-        #fileInput { display: none; }
+        /* Thay đổi input thành textarea */
+        textarea.input-box {
+            width: 90%; padding: 10px; margin: 5px; 
+            border: 1px solid #444; border-radius: 5px; background: #2c2c2c; color: white;
+            font-family: inherit; resize: vertical; min-height: 40px;
+        }
+
         .hidden { display: none !important; }
 
         /* Action bar & Edit Mode */
@@ -80,34 +80,51 @@
         .btn-mini { border: none; color: white; font-size: 12px; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .btn-edit { background: rgba(255,255,255,0.2); }
         .btn-delete { background: rgba(207, 102, 121, 0.8); }
+        
         .edit-form-container { width: 100%; display: flex; flex-direction: column; gap: 5px; align-items: center; }
-        .edit-input { width: 90%; padding: 6px; border-radius: 4px; border: none; font-size: 14px; background: #fff; color: #000; }
+        .edit-input { width: 90%; padding: 6px; border-radius: 4px; border: none; font-size: 14px; background: #fff; color: #000; font-family: inherit; }
         .edit-label { font-size: 10px; text-align: left; width: 90%; opacity: 0.8; margin-bottom: -2px; }
+
+        /* Rank Colors Text */
+        .text-dong { color: #cd7f32; }
+        .text-bac { color: #e0e0e0; }
+        .text-vang { color: #ffd700; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+        .text-bachkim { color: #00ced1; }
+        .text-kimcuong { color: #b9f2ff; text-shadow: 0 0 5px #00bfff; }
+        .text-tinhanh { color: #ff4500; }
+        .text-caothu { color: #d02090; text-shadow: 0 0 5px #d02090; }
+        .text-thachdau { background: -webkit-linear-gradient(45deg, #ff0000, #ffff00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900;}
+
     </style>
 </head>
 <body>
 
-    <h2 style="color: #bb86fc;">⚔️ Flashcard Rank</h2>
-    
-    <div class="stats-board" id="statsBoard">
-        Loading stats...
+    <div class="player-profile">
+        <div class="player-rank-title">Rank Hiện Tại Của Bạn</div>
+        <div class="current-rank" id="playerRankName">TẬP SỰ</div>
+        <div class="total-score">Điểm thông thạo: <b id="playerScore">0</b></div>
+        
+        <div class="rank-progress-bar">
+            <div class="rank-progress-fill" id="rankProgress"></div>
+        </div>
+        <div style="font-size: 11px; margin-top: 5px; color: #666;" id="nextRankMsg">Tiếp theo: Đồng (50 điểm)</div>
     </div>
 
     <div class="status-bar">
-        Cần leo rank: <b id="dueCount" style="color:#cf6679">0</b> 
-        (Tổng quân số: <span id="totalCount">0</span>)
+        Cần học hôm nay: <b id="dueCount" style="color:#cf6679">0</b> 
+        (Tổng kho thẻ: <span id="totalCount">0</span>)
     </div>
 
     <div class="card-container" onclick="latThe()">
         <div class="card" id="flashcard">
             <div class="card-face card-front">
                 <span id="frontContent">Loading...</span>
-                <span class="rank-badge rank-dong" id="rankDisplay">Đồng</span>
+                <span class="card-rank-badge" id="cardLevelBadge">Lv.0</span>
             </div>
 
             <div class="card-face card-back" id="backContentWrapper">
                 <div id="viewMode">
-                    <div id="backMainContent" style="font-size: 22px; font-weight: bold;">...</div>
+                    <div id="backMainContent">...</div>
                     <div class="action-bar">
                         <button class="btn-mini btn-edit" onclick="moCheDoSua(event)">✏️ Sửa</button>
                         <button class="btn-mini btn-delete" onclick="xoaThe(event)">🗑️ Xóa</button>
@@ -116,9 +133,9 @@
 
                 <div id="editMode" class="edit-form-container hidden" onclick="event.stopPropagation()">
                     <span class="edit-label">Tiếng Anh:</span>
-                    <input type="text" id="editFrontInput" class="edit-input">
+                    <textarea id="editFrontInput" class="edit-input" rows="2"></textarea>
                     <span class="edit-label">Tiếng Việt:</span>
-                    <input type="text" id="editBackInput" class="edit-input">
+                    <textarea id="editBackInput" class="edit-input" rows="2"></textarea>
                     <div style="margin-top: 8px; display: flex; gap:5px;">
                         <button class="btn-mini" style="background:#03dac6; color:black;" onclick="luuLai(event)">Lưu</button>
                         <button class="btn-mini" style="background:#cf6679;" onclick="huySua(event)">Hủy</button>
@@ -130,7 +147,7 @@
 
     <div id="waitMessage" class="hidden">
         <h3 style="color: #03dac6;">🎉 Đã hoàn thành nhiệm vụ!</h3>
-        <p>Thẻ tiếp theo sẽ xuất hiện sau:</p>
+        <p>Hẹn gặp lại sau:</p>
         <div id="countdownTimer" style="font-size: 20px; font-weight: bold; color: #bb86fc;">00:00:00</div>
     </div>
 
@@ -142,7 +159,7 @@
     <div class="controls" id="reviewButtons">
         <button class="btn btn-forgot" id="btnForgot" onclick="danhGia(false)">
             ❌ Quên
-            <span class="btn-subtext">(Về Đồng)</span>
+            <span class="btn-subtext">(Về Mo)</span>
         </button>
         <button class="btn btn-remember" id="btnRemember" onclick="danhGia(true)">
             ✅ Nhớ
@@ -152,17 +169,17 @@
 
     <div class="add-section">
         <h3>➕ Thêm thẻ mới</h3>
-        <input type="text" id="newFront" placeholder="Mặt trước (Tiếng Anh)">
-        <input type="text" id="newBack" placeholder="Mặt sau (Tiếng Việt)">
+        <textarea id="newFront" class="input-box" rows="2" placeholder="Mặt trước (Tiếng Anh - Enter để xuống dòng)"></textarea>
+        <textarea id="newBack" class="input-box" rows="2" placeholder="Mặt sau (Tiếng Việt - Enter để xuống dòng)"></textarea>
         <button class="btn btn-blue" onclick="themThe()">Lưu Thẻ</button>
     </div>
 
     <div class="add-section">
-        <h3>📂 Sao lưu & Khôi phục</h3>
+        <h3>📂 Hệ thống</h3>
         <button class="btn btn-purple" onclick="xuatDuLieu()">⬇️ Tải Backup</button>
         <button class="btn btn-gray" onclick="document.getElementById('fileInput').click()">⬆️ Khôi phục</button>
         <input type="file" id="fileInput" accept=".json" onchange="nhapDuLieu(this)">
-        <button class="btn btn-forgot" style="margin-top:20px;" onclick="xoaHet()">🗑️ Xóa tất cả</button>
+        <button class="btn btn-forgot" style="margin-top:20px;" onclick="xoaHet()">🗑️ Xóa dữ liệu</button>
     </div>
 
     <script>
@@ -174,34 +191,36 @@
         const cardElement = document.getElementById("flashcard");
         const frontEl = document.getElementById("frontContent");
         const backMainEl = document.getElementById("backMainContent");
-        const rankEl = document.getElementById("rankDisplay"); // Rank Display
-        const statsBoard = document.getElementById("statsBoard");
+        const cardLevelBadge = document.getElementById("cardLevelBadge");
+        
+        const playerRankName = document.getElementById("playerRankName");
+        const playerScoreEl = document.getElementById("playerScore");
+        const rankProgress = document.getElementById("rankProgress");
+        const nextRankMsg = document.getElementById("nextRankMsg");
+
         const waitMessage = document.getElementById("waitMessage");
         const countdownTimer = document.getElementById("countdownTimer");
-        
+        const timeNextEl = document.getElementById("timeNext");
+
+        // Edit Inputs (đổi sang textarea)
         const viewMode = document.getElementById("viewMode");
         const editMode = document.getElementById("editMode");
         const editFrontInput = document.getElementById("editFrontInput");
         const editBackInput = document.getElementById("editBackInput");
-        const timeNextEl = document.getElementById("timeNext");
 
-        // --- CẤU HÌNH RANK ---
-        const RANKS = [
-            { name: "Đồng", class: "rank-dong", color: "#cd7f32" },      // Lv 0
-            { name: "Bạc", class: "rank-bac", color: "#c0c0c0" },        // Lv 1
-            { name: "Vàng", class: "rank-vang", color: "#ffd700" },      // Lv 2
-            { name: "Bạch Kim", class: "rank-bachkim", color: "#00ced1" }, // Lv 3
-            { name: "Kim Cương", class: "rank-kimcuong", color: "#b9f2ff" },// Lv 4
-            { name: "Tinh Anh", class: "rank-tinhanh", color: "#ff4500" },  // Lv 5
-            { name: "Cao Thủ", class: "rank-caothu", color: "#800080" },    // Lv 6
-            { name: "Thách Đấu", class: "rank-thachdau", color: "#ff0000" } // Lv 7+
+        // --- CẤU HÌNH RANK TỔNG (PLAYER RANK) ---
+        // Các mốc điểm để lên rank
+        const PLAYER_MILESTONES = [
+            { score: 0, name: "Tập Sự", class: "text-bac" },
+            { score: 50, name: "Đồng Đoàn", class: "text-dong" },
+            { score: 100, name: "Bạc Đoàn", class: "text-bac" },
+            { score: 200, name: "Vàng Đoàn", class: "text-vang" },
+            { score: 300, name: "Bạch Kim", class: "text-bachkim" },
+            { score: 400, name: "Kim Cương", class: "text-kimcuong" },
+            { score: 500, name: "Tinh Anh", class: "text-tinhanh" },
+            { score: 600, name: "Cao Thủ", class: "text-caothu" },
+            { score: 1000, name: "Thách Đấu", class: "text-thachdau" }
         ];
-
-        function getRankInfo(level) {
-            if (!level) level = 0;
-            if (level >= 7) return RANKS[7];
-            return RANKS[level];
-        }
 
         function initApp() {
             const savedData = localStorage.getItem('myFlashcards_v14'); 
@@ -213,67 +232,91 @@
                 fullDatabase = [];
             }
             locTheCanHoc();
+            updatePlayerRankUI(); // Cập nhật rank ngay khi mở
             
             loadVoices();
             if (speechSynthesis.onvoiceschanged !== undefined) {
                 speechSynthesis.onvoiceschanged = loadVoices;
             }
-            
-            // Cập nhật đếm ngược mỗi giây
             setInterval(updateCountdown, 1000);
         }
 
         function loadVoices() { voices = window.speechSynthesis.getVoices(); }
 
-        // --- THỐNG KÊ RANK ---
-        function updateStats() {
-            let counts = [0, 0, 0, 0, 0, 0, 0, 0]; // 8 cấp rank
-            fullDatabase.forEach(c => {
-                let lv = c.level || 0;
-                if (lv > 7) lv = 7;
-                counts[lv]++;
+        // --- HÀM TÍNH TOÁN RANK TỔNG ---
+        function calculateTotalScore() {
+            // Điểm = Tổng level của tất cả các thẻ
+            let total = 0;
+            fullDatabase.forEach(card => {
+                total += (card.level || 0);
             });
+            return total;
+        }
 
-            let html = "";
-            RANKS.forEach((r, idx) => {
-                if (counts[idx] > 0 || idx < 3) { // Luôn hiện 3 rank đầu
-                    html += `<div class="stat-item"><span class="dot" style="background:${r.color}"></span> ${r.name}: <b>${counts[idx]}</b></div>`;
+        function updatePlayerRankUI() {
+            const score = calculateTotalScore();
+            playerScoreEl.innerText = score;
+
+            // Tìm rank hiện tại
+            let currentRankObj = PLAYER_MILESTONES[0];
+            let nextRankObj = null;
+
+            for (let i = 0; i < PLAYER_MILESTONES.length; i++) {
+                if (score >= PLAYER_MILESTONES[i].score) {
+                    currentRankObj = PLAYER_MILESTONES[i];
+                    if (i < PLAYER_MILESTONES.length - 1) {
+                        nextRankObj = PLAYER_MILESTONES[i+1];
+                    } else {
+                        nextRankObj = null; // Max rank
+                    }
                 }
-            });
-            statsBoard.innerHTML = html;
+            }
+
+            // Hiển thị tên Rank
+            playerRankName.innerText = currentRankObj.name;
+            playerRankName.className = "current-rank " + currentRankObj.class;
+
+            // Hiển thị thanh tiến trình (Progress Bar)
+            if (nextRankObj) {
+                let prevScore = currentRankObj.score;
+                let targetScore = nextRankObj.score;
+                let percent = ((score - prevScore) / (targetScore - prevScore)) * 100;
+                
+                rankProgress.style.width = percent + "%";
+                nextRankMsg.innerText = `Tiếp theo: ${nextRankObj.name} (${targetScore} điểm)`;
+            } else {
+                rankProgress.style.width = "100%";
+                nextRankMsg.innerText = "Bạn đã đạt đỉnh vinh quang!";
+            }
         }
 
         // --- FLASHCARD LOGIC ---
         function danhGia(nho) {
             if (!currentCard) return;
             if (!editMode.classList.contains("hidden")) huySua(null);
-
             const now = new Date(); 
 
             if (nho) {
                 currentCard.level = (currentCard.level || 0) + 1;
                 let daysToAdd = Math.pow(2, currentCard.level - 1); 
-                
-                // Logic: Qua ngày là có
                 let nextDate = new Date();
                 nextDate.setDate(now.getDate() + daysToAdd);
                 nextDate.setHours(0, 0, 0, 0); 
-                
                 currentCard.nextReview = nextDate.getTime();
             } else {
-                currentCard.level = 0; // Về Đồng
+                currentCard.level = 0; 
                 currentCard.nextReview = now.getTime();
                 const index = fullDatabase.indexOf(currentCard);
                 if (index > -1) fullDatabase.push(fullDatabase.splice(index, 1)[0]);
             }
             saveToStorage();
             locTheCanHoc(); 
+            updatePlayerRankUI(); // Cập nhật rank tổng sau mỗi lần học
         }
 
         function locTheCanHoc() {
             const now = Date.now();
             studyQueue = fullDatabase.filter(card => !card.nextReview || card.nextReview <= now);
-            updateStats(); // Cập nhật bảng thống kê
             updateUI();
         }
 
@@ -282,16 +325,14 @@
             document.getElementById("totalCount").innerText = fullDatabase.length;
 
             if (studyQueue.length === 0) {
-                // HẾT THẺ
                 cardElement.style.display = "none";
                 document.getElementById("reviewButtons").style.display = "none";
                 document.getElementById("audioBar").style.display = "none";
                 waitMessage.classList.remove("hidden");
-                updateCountdown(); // Cập nhật giờ ngay
+                updateCountdown();
                 return;
             }
 
-            // CÒN THẺ
             cardElement.style.display = "block";
             document.getElementById("reviewButtons").style.display = "flex";
             document.getElementById("audioBar").style.display = "flex";
@@ -299,15 +340,13 @@
 
             currentCard = studyQueue[0];
             
-            // Xử lý Rank Badge
-            const rInfo = getRankInfo(currentCard.level);
-            rankEl.innerText = rInfo.name;
-            rankEl.className = "rank-badge " + rInfo.class;
+            // Badge trên thẻ
+            cardLevelBadge.innerText = "Lv." + (currentCard.level || 0);
 
-            // Xử lý nút bấm
+            // Time estimate
             const nextLv = (currentCard.level || 0) + 1;
             const days = Math.pow(2, nextLv - 1);
-            timeNextEl.innerText = `(+${days}d)`; // +1d, +2d
+            timeNextEl.innerText = `(+${days}d)`;
 
             cardElement.classList.remove("is-flipped"); 
             huySua(null);
@@ -319,39 +358,28 @@
             }, 200);
         }
 
-        // --- ĐẾM NGƯỢC THỜI GIAN CHỜ ---
+        // --- ĐẾM NGƯỢC ---
         function updateCountdown() {
-            if (studyQueue.length > 0) {
-                countdownTimer.innerText = "Đang học...";
-                return;
-            }
-            if (fullDatabase.length === 0) {
-                countdownTimer.innerText = "Chưa có thẻ nào!";
-                return;
-            }
+            if (studyQueue.length > 0) { countdownTimer.innerText = "Đang chiến đấu..."; return; }
+            if (fullDatabase.length === 0) { countdownTimer.innerText = "Chưa có dữ liệu!"; return; }
 
-            // Tìm thời gian review gần nhất trong tương lai
             const now = Date.now();
             let minTime = Infinity;
-            
             fullDatabase.forEach(c => {
-                if (c.nextReview > now && c.nextReview < minTime) {
-                    minTime = c.nextReview;
-                }
+                if (c.nextReview > now && c.nextReview < minTime) minTime = c.nextReview;
             });
 
-            if (minTime === Infinity) {
-                 countdownTimer.innerText = "Hoàn thành! (Vui lòng thêm thẻ mới)";
-            } else {
+            if (minTime === Infinity) { countdownTimer.innerText = "Hết bài!"; } 
+            else {
                 let diff = minTime - now;
                 let hh = Math.floor(diff / (1000 * 60 * 60));
                 let mm = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 let ss = Math.floor((diff % (1000 * 60)) / 1000);
-                countdownTimer.innerText = `${hh} giờ ${mm} phút ${ss} giây`;
+                countdownTimer.innerText = `${hh}h ${mm}m ${ss}s`;
             }
         }
 
-        // --- CÁC HÀM CŨ ---
+        // --- OTHER FUNCTIONS ---
         function docTiengAnh(tocDo = 1.0, event) {
             if (event) event.stopPropagation();
             if (!currentCard) return;
@@ -359,8 +387,7 @@
             let u = new SpeechSynthesisUtterance(cleanText);
             u.rate = tocDo;
             let bestVoice = voices.find(v => v.name === "Samantha") || voices.find(v => v.lang === "en-US");
-            if (bestVoice) { u.voice = bestVoice; u.lang = bestVoice.lang; } 
-            else { u.lang = "en-US"; }
+            if (bestVoice) { u.voice = bestVoice; u.lang = bestVoice.lang; } else { u.lang = "en-US"; }
             window.speechSynthesis.cancel();
             window.speechSynthesis.speak(u);
         }
@@ -372,14 +399,26 @@
             const idx = fullDatabase.findIndex(c => c.id === currentCard.id);
             if (idx !== -1) { fullDatabase[idx].front = currentCard.front; fullDatabase[idx].back = currentCard.back; saveToStorage(); }
             frontEl.innerText = currentCard.front; backMainEl.innerText = currentCard.back; huySua(null);
-            locTheCanHoc(); // Cập nhật lại UI để hiện đúng Rank
         }
-        function xoaThe(e) { e.stopPropagation(); if(confirm(`Xóa thẻ "${currentCard.front}" chứ?`)) { fullDatabase = fullDatabase.filter(c => c.id !== currentCard.id); saveToStorage(); locTheCanHoc(); } }
-        function nhapDuLieu(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const data = JSON.parse(e.target.result); if (Array.isArray(data)) { if(confirm("Dữ liệu cũ sẽ bị thay thế?")) { fullDatabase = data; saveToStorage(); locTheCanHoc(); alert("Đã khôi phục!"); } } } catch (err) { alert("File lỗi!"); } }; reader.readAsText(file); input.value = ''; }
-        function xuatDuLieu() { if (fullDatabase.length === 0) { alert("Chưa có thẻ!"); return; } const dataStr = JSON.stringify(fullDatabase, null, 2); const blob = new Blob([dataStr], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "backup_" + new Date().toISOString().slice(0,10) + ".json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+        function xoaThe(e) { e.stopPropagation(); if(confirm(`Xóa thẻ?`)) { fullDatabase = fullDatabase.filter(c => c.id !== currentCard.id); saveToStorage(); locTheCanHoc(); updatePlayerRankUI(); } }
+        function nhapDuLieu(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const data = JSON.parse(e.target.result); if (Array.isArray(data)) { if(confirm("Ghi đè dữ liệu cũ?")) { fullDatabase = data; saveToStorage(); locTheCanHoc(); updatePlayerRankUI(); alert("OK!"); } } } catch (err) { alert("Lỗi file!"); } }; reader.readAsText(file); input.value = ''; }
+        function xuatDuLieu() { if (fullDatabase.length === 0) { alert("Trống!"); return; } const dataStr = JSON.stringify(fullDatabase, null, 2); const blob = new Blob([dataStr], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "backup_v20_" + new Date().toISOString().slice(0,10) + ".json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
         function latThe() { if (!editMode.classList.contains("hidden")) return; if (currentCard) cardElement.classList.toggle("is-flipped"); }
-        function themThe() { const front = document.getElementById("newFront").value; const back = document.getElementById("newBack").value; if (front && back) { fullDatabase.push({ id: Date.now(), front: front, back: back, level: 0, nextReview: 0 }); saveToStorage(); document.getElementById("newFront").value = ""; document.getElementById("newBack").value = ""; locTheCanHoc(); } }
-        function xoaHet() { if(confirm("Xóa sạch toàn bộ dữ liệu?")) { fullDatabase = []; saveToStorage(); locTheCanHoc(); } }
+        
+        // Cập nhật hàm themThe để lấy từ textarea
+        function themThe() { 
+            const front = document.getElementById("newFront").value; 
+            const back = document.getElementById("newBack").value; 
+            if (front && back) { 
+                fullDatabase.push({ id: Date.now(), front: front, back: back, level: 0, nextReview: 0 }); 
+                saveToStorage(); 
+                document.getElementById("newFront").value = ""; 
+                document.getElementById("newBack").value = ""; 
+                locTheCanHoc(); 
+                updatePlayerRankUI(); // Cập nhật rank
+            } 
+        }
+        function xoaHet() { if(confirm("Xóa sạch?")) { fullDatabase = []; saveToStorage(); locTheCanHoc(); updatePlayerRankUI(); } }
         function saveToStorage() { localStorage.setItem('myFlashcards_v14', JSON.stringify(fullDatabase)); }
 
         initApp();
