@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UET Flashcards v5 (Backup)</title>
+    <title>UET Flashcards v7 (Pro Audio)</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; background-color: #f0f2f5; padding: 20px; color: #333; padding-bottom: 50px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; background-color: #f0f2f5; padding: 20px; color: #333; padding-bottom: 80px; }
         
-        /* CSS Card */
         .card-container { perspective: 1000px; margin: 20px auto; width: 300px; height: 200px; cursor: pointer; }
         .card {
             width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s;
@@ -18,41 +17,38 @@
         .card-face {
             position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
             display: flex; align-items: center; justify-content: center;
-            font-size: 24px; font-weight: bold; border-radius: 15px; flex-direction: column; padding: 10px;
+            font-size: 24px; font-weight: bold; border-radius: 15px; flex-direction: column; padding: 15px; word-wrap: break-word;
         }
         .card-front { background: white; color: #333; }
-        .card-back { background: #4caf50; color: white; transform: rotateY(180deg); }
+        .card-back { background: #4caf50; color: white; transform: rotateY(180deg); font-size: 20px; }
 
-        /* Nút điều khiển */
+        /* KHU VỰC AUDIO */
+        .audio-controls { margin-top: 10px; display: flex; justify-content: center; gap: 10px; }
+        .btn-audio { background: #fff; border: 1px solid #ddd; padding: 8px 15px; border-radius: 20px; font-size: 14px; cursor: pointer; color: #333; box-shadow: 0 2px 2px rgba(0,0,0,0.05); }
+        .btn-audio:active { background: #eee; transform: scale(0.95); }
+
+        /* NÚT CHỨC NĂNG CHÍNH */
         .controls { margin-top: 20px; display: flex; justify-content: center; gap: 15px; }
-        .btn { padding: 12px 20px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: bold; color: white;}
+        .btn { padding: 12px 20px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; min-width: 60px;}
         
         .btn-forgot { background: #dc3545; }
         .btn-remember { background: #28a745; }
-        .btn-voice { background: #ff9800; }
-        .btn-blue { background: #007bff; }
-        .btn-gray { background: #6c757d; }
-        .btn-purple { background: #6f42c1; } /* Màu nút Backup */
-        
-        .btn:active { transform: scale(0.95); opacity: 0.9; }
+        .btn-blue { background: #007bff; width: 100%; margin-top: 10px;}
+        .btn-orange { background: #fd7e14; color: white; margin-top: 5px; width: 100%; }
 
-        /* Inputs */
         .add-section, .data-section { margin-top: 30px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        input[type="text"] { padding: 10px; margin: 5px; width: 80%; border: 1px solid #ddd; border-radius: 5px; }
+        input[type="text"] { padding: 10px; margin: 5px; width: 85%; border: 1px solid #ddd; border-radius: 5px; }
         
         .status-bar { margin-bottom: 15px; font-size: 14px; color: #666; }
-        .level-badge { background: #eee; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-top: 5px;}
-        
-        /* Ẩn input file */
-        #fileInput { display: none; }
+        .level-badge { background: #eee; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-top: 5px; color: #555;}
     </style>
 </head>
 <body>
 
-    <h2>⚡ Flashcard Của Tôi</h2>
+    <h2>🎧 Luyện Phát Âm</h2>
     
     <div class="status-bar">
-        Cần học: <b id="dueCount" style="color:red">0</b> thẻ 
+        Cần học: <b id="dueCount" style="color:red">0</b> 
         (Tổng: <span id="totalCount">0</span>)
     </div>
 
@@ -66,35 +62,49 @@
         </div>
     </div>
 
+    <div class="audio-controls" id="audioBar">
+        <button class="btn-audio" onclick="docTiengAnh(1.0, event)">🇺🇸 Nghe (Chuẩn)</button>
+        <button class="btn-audio" onclick="docTiengAnh(0.6, event)">🐌 Nghe Chậm</button>
+    </div>
+
     <div class="controls" id="reviewButtons">
         <button class="btn btn-forgot" onclick="danhGia(false)">❌ Quên</button>
-        <button class="btn btn-voice" onclick="docTu(event)">🔊</button>
         <button class="btn btn-remember" onclick="danhGia(true)">✅ Nhớ</button>
     </div>
 
     <div class="add-section">
-        <h3>➕ Thêm thẻ mới</h3>
-        <input type="text" id="newFront" placeholder="Mặt trước (VD: Apple)">
-        <input type="text" id="newBack" placeholder="Mặt sau (VD: Quả táo)">
-        <br>
-        <button class="btn btn-blue" style="margin-top: 10px;" onclick="themThe()">Lưu Thẻ</button>
+        <h3>📂 Dữ liệu</h3>
+        <button class="btn btn-orange" onclick="napDuLieuMau()">🔄 Nạp bộ từ vựng IT & Game</button>
+        <button class="btn btn-forgot" style="margin-top:10px; background:#6c757d" onclick="xoaHet()">🗑️ Xóa sạch</button>
     </div>
 
-    <div class="data-section">
-        <h3>💾 Dữ liệu & Backup</h3>
-        <p style="font-size: 13px; color: #666;">Tải file về máy để không bị mất dữ liệu</p>
-        
-        <button class="btn btn-purple" onclick="xuatDuLieu()">⬇️ Tải file Backup</button>
-        <button class="btn btn-gray" onclick="document.getElementById('fileInput').click()">⬆️ Khôi phục file</button>
-        
-        <input type="file" id="fileInput" accept=".json" onchange="nhapDuLieu(this)">
-        
-        <div style="margin-top: 15px;">
-            <button class="btn btn-forgot" style="font-size: 12px; padding: 5px 10px;" onclick="resetAll()">🗑️ Xóa sạch tất cả</button>
-        </div>
+    <div class="add-section">
+        <h3>➕ Thêm thẻ</h3>
+        <input type="text" id="newFront" placeholder="Mặt trước (Tiếng Anh)">
+        <input type="text" id="newBack" placeholder="Mặt sau (Tiếng Việt)">
+        <button class="btn btn-blue" onclick="themThe()">Lưu Thẻ</button>
     </div>
 
     <script>
+        // DỮ LIỆU CÓ SẴN (Đã cập nhật đầy đủ)
+        const sampleData = [
+            { id: 1, front: "Firewall", back: "Tường lửa" },
+            { id: 2, front: "Malware", back: "Phần mềm độc hại" },
+            { id: 3, front: "Phishing", back: "Tấn công lừa đảo" },
+            { id: 4, front: "Encrypt", back: "Mã hóa" },
+            { id: 5, front: "Vulnerability", back: "Lỗ hổng bảo mật" },
+            { id: 6, front: "Optimize", back: "Tối ưu hóa" },
+            { id: 7, front: "Compatible", back: "Tương thích" },
+            { id: 8, front: "Bottleneck", back: "Nghẽn cổ chai" },
+            { id: 9, front: "Overheat", back: "Quá nhiệt" },
+            { id: 10, front: "Capacity", back: "Dung lượng" },
+            { id: 11, front: "Latency", back: "Độ trễ (Ping)" },
+            { id: 12, front: "Maintenance", back: "Bảo trì" },
+            { id: 13, front: "Access", back: "Truy cập" },
+            { id: 14, front: "Bandwidth", back: "Băng thông" },
+            { id: 15, front: "Stable", back: "Ổn định" }
+        ];
+
         let fullDatabase = [];
         let studyQueue = [];
         let currentCard = null;
@@ -104,26 +114,36 @@
         const backEl = document.getElementById("backContent");
         const levelEl = document.getElementById("levelDisplay");
 
-        // --- 1. KHỞI TẠO ---
         function initApp() {
-            const savedData = localStorage.getItem('myFlashcards_v5');
+            const savedData = localStorage.getItem('myFlashcards_v7');
             if (savedData) {
                 fullDatabase = JSON.parse(savedData);
             } else {
-                fullDatabase = [
-                    { id: 1, front: "Bấm nút Backup", back: "Để tải file về máy", level: 0, nextReview: 0 }
-                ];
+                fullDatabase = [];
             }
             locTheCanHoc();
         }
 
-        // --- 2. LOGIC APP ---
+        function napDuLieuMau() {
+            if(confirm("Nạp dữ liệu IT mới?")) {
+                fullDatabase = sampleData.map(item => ({ ...item, level: 0, nextReview: 0 }));
+                saveToStorage();
+                locTheCanHoc();
+                alert("Đã nạp xong!");
+            }
+        }
+
+        function xoaHet() {
+            if(confirm("Xóa sạch thẻ?")) {
+                fullDatabase = [];
+                saveToStorage();
+                locTheCanHoc();
+            }
+        }
+
         function locTheCanHoc() {
             const now = Date.now();
-            studyQueue = fullDatabase.filter(card => {
-                if (!card.nextReview) return true;
-                return card.nextReview <= now;
-            });
+            studyQueue = fullDatabase.filter(card => !card.nextReview || card.nextReview <= now);
             updateUI();
         }
 
@@ -132,10 +152,11 @@
             document.getElementById("totalCount").innerText = fullDatabase.length;
 
             if (studyQueue.length === 0) {
-                frontEl.innerText = "🎉 Đã xong!";
-                backEl.innerText = "Giỏi lắm! Hẹn gặp lại.";
+                frontEl.innerText = (fullDatabase.length === 0) ? "Chào bạn!" : "🎉 Đã xong!";
+                backEl.innerText = (fullDatabase.length === 0) ? "Hãy nạp dữ liệu" : "Hết bài hôm nay";
                 levelEl.style.display = "none";
                 document.getElementById("reviewButtons").style.visibility = "hidden";
+                document.getElementById("audioBar").style.visibility = "hidden"; // Ẩn nút audio khi hết bài
                 cardElement.classList.remove("is-flipped");
                 currentCard = null;
                 return;
@@ -143,6 +164,7 @@
 
             currentCard = studyQueue[0];
             document.getElementById("reviewButtons").style.visibility = "visible";
+            document.getElementById("audioBar").style.visibility = "visible";
             levelEl.style.display = "inline-block";
             cardElement.classList.remove("is-flipped");
 
@@ -150,6 +172,9 @@
                 frontEl.innerText = currentCard.front;
                 backEl.innerText = currentCard.back;
                 levelEl.innerText = "Lv." + (currentCard.level || 0);
+                
+                // TỰ ĐỘNG ĐỌC KHI HIỆN THẺ (Tùy chọn: bật dòng dưới nếu muốn)
+                // docTiengAnh(1.0); 
             }, 200);
         }
 
@@ -187,77 +212,42 @@
                 document.getElementById("newFront").value = "";
                 document.getElementById("newBack").value = "";
                 locTheCanHoc();
-                alert("Đã thêm thành công!");
             }
         }
 
         function saveToStorage() {
-            localStorage.setItem('myFlashcards_v5', JSON.stringify(fullDatabase));
+            localStorage.setItem('myFlashcards_v7', JSON.stringify(fullDatabase));
         }
 
-        function docTu(event) {
-            event.stopPropagation();
+        // --- TÍNH NĂNG AUDIO NÂNG CAO ---
+        function docTiengAnh(tocDo = 1.0, event) {
+            if (event) event.stopPropagation(); // Ngăn lật thẻ khi bấm nút
             if (!currentCard) return;
-            let isBack = cardElement.classList.contains("is-flipped");
-            let text = isBack ? currentCard.back : currentCard.front;
-            let lang = isBack ? "vi-VN" : "en-US";
-            let u = new SpeechSynthesisUtterance(text);
-            u.lang = lang; window.speechSynthesis.speak(u);
-        }
 
-        // --- 3. TÍNH NĂNG BACKUP / RESTORE (QUAN TRỌNG) ---
-        
-        // Xuất dữ liệu ra file
-        function xuatDuLieu() {
-            const dataStr = JSON.stringify(fullDatabase, null, 2); // Chuyển thành text đẹp
-            const blob = new Blob([dataStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
+            // Luôn đọc mặt Tiếng Anh (Front) để học phát âm
+            let text = currentCard.front;
             
-            // Tạo thẻ a ảo để bấm tải xuống
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "backup_flashcard_" + new Date().toISOString().slice(0,10) + ".json";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            // Xử lý chuỗi: Chỉ đọc từ chính, bỏ qua phần trong ngoặc đơn (n) (v) nếu có
+            // Ví dụ: "Firewall (n)" -> Đọc "Firewall"
+            let cleanText = text.replace(/\(.*\)/, "").trim();
+
+            let u = new SpeechSynthesisUtterance(cleanText);
+            u.lang = "en-US"; // Ép buộc giọng Anh Mỹ
+            u.rate = tocDo;   // Tốc độ: 1.0 là bình thường, 0.6 là chậm
+            
+            // Cố gắng tìm giọng "Premium" hoặc "Google" trên thiết bị
+            let voices = window.speechSynthesis.getVoices();
+            let bestVoice = voices.find(v => v.name.includes("Samantha") || v.name.includes("Google") || v.lang === "en-US");
+            if (bestVoice) u.voice = bestVoice;
+
+            window.speechSynthesis.cancel(); // Dừng câu cũ nếu đang đọc dở
+            window.speechSynthesis.speak(u);
         }
 
-        // Nhập dữ liệu từ file
-        function nhapDuLieu(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (Array.isArray(data)) {
-                        if(confirm("Dữ liệu cũ sẽ bị thay thế bằng file này. Bạn có chắc không?")) {
-                            fullDatabase = data;
-                            saveToStorage();
-                            locTheCanHoc();
-                            alert("Khôi phục dữ liệu thành công! (" + data.length + " thẻ)");
-                        }
-                    } else {
-                        alert("File không đúng định dạng!");
-                    }
-                } catch (err) {
-                    alert("Lỗi đọc file: " + err);
-                }
-            };
-            reader.readAsText(file);
-            // Reset input để chọn lại file cũ nếu muốn
-            input.value = ''; 
-        }
-
-        function resetAll() {
-            if(confirm("CẢNH BÁO: Hành động này sẽ xóa sạch dữ liệu. Bạn có chắc không?")) {
-                fullDatabase = [];
-                saveToStorage();
-                locTheCanHoc();
-            }
-        }
+        // Fix lỗi loading voice trên iOS
+        window.speechSynthesis.onvoiceschanged = function() {
+            // Không làm gì cả, chỉ để kích hoạt load voice
+        };
 
         initApp();
     </script>
