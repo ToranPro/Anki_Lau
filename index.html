@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UET Flashcards v4 (Thông Minh)</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        text-align: center;
+        background-color: #f0f2f5;
+        padding: 20px;
+        color: #333;
+      }
+
+      /* CSS Card */
+      .card-container {
+        perspective: 1000px;
+        margin: 20px auto;
+        width: 300px;
+        height: 200px;
+        cursor: pointer;
+      }
+      .card {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.6s;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 15px;
+      }
+      .card.is-flipped {
+        transform: rotateY(180deg);
+      }
+
+      .card-face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: bold;
+        border-radius: 15px;
+        flex-direction: column;
+        padding: 10px;
+      }
+      .card-front {
+        background: white;
+        color: #333;
+      }
+      .card-back {
+        background: #4caf50;
+        color: white;
+        transform: rotateY(180deg);
+      }
+
+      /* Nút điều khiển */
+      .controls {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+      }
+      .btn {
+        padding: 12px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+        font-weight: bold;
+        color: white;
+      }
+
+      /* Màu nút đánh giá */
+      .btn-forgot {
+        background: #dc3545;
+      } /* Đỏ */
+      .btn-remember {
+        background: #28a745;
+      } /* Xanh lá */
+      .btn-voice {
+        background: #ff9800;
+      } /* Cam */
+
+      .btn:active {
+        transform: scale(0.95);
+        opacity: 0.9;
+      }
+
+      /* Add Section */
+      .add-section {
+        margin-top: 40px;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+      input {
+        padding: 10px;
+        margin: 5px;
+        width: 80%;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+
+      .status-bar {
+        margin-bottom: 15px;
+        font-size: 14px;
+        color: #666;
+      }
+      .level-badge {
+        background: #eee;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+        margin-top: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>🧠 App Học Thông Minh</h2>
+
+    <div class="status-bar">
+      Cần học hôm nay: <b id="dueCount" style="color: red">0</b> thẻ
+    </div>
+
+    <div class="card-container" onclick="latThe()">
+      <div class="card" id="flashcard">
+        <div class="card-face card-front">
+          <span id="frontContent">Loading...</span>
+          <span class="level-badge" id="levelDisplay">Lv.0</span>
+        </div>
+        <div class="card-face card-back" id="backContent">...</div>
+      </div>
+    </div>
+
+    <div class="controls" id="reviewButtons">
+      <button class="btn btn-forgot" onclick="danhGia(false)">❌ Quên</button>
+      <button class="btn btn-voice" onclick="docTu(event)">🔊</button>
+      <button class="btn btn-remember" onclick="danhGia(true)">✅ Nhớ</button>
+    </div>
+
+    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ccc" />
+
+    <div class="add-section">
+      <h3>➕ Thêm thẻ mới</h3>
+      <input type="text" id="newFront" placeholder="Mặt trước" />
+      <input type="text" id="newBack" placeholder="Mặt sau" />
+      <br />
+      <button
+        class="btn"
+        style="background: #007bff; margin-top: 10px"
+        onclick="themThe()"
+      >
+        Lưu Thẻ
+      </button>
+      <button
+        class="btn"
+        style="background: #6c757d; margin-top: 10px"
+        onclick="resetAll()"
+      >
+        ♻️ Reset Học Lại
+      </button>
+    </div>
+
+    <script>
+      let fullDatabase = []; // Chứa tất cả thẻ
+      let studyQueue = []; // Chỉ chứa thẻ cần học hôm nay
+      let currentCard = null; // Thẻ đang hiện trên màn hình
+
+      const cardElement = document.getElementById("flashcard");
+      const frontEl = document.getElementById("frontContent");
+      const backEl = document.getElementById("backContent");
+      const levelEl = document.getElementById("levelDisplay");
+      const dueCountEl = document.getElementById("dueCount");
+
+      // --- 1. KHỞI TẠO ---
+      function initApp() {
+        const savedData = localStorage.getItem("myFlashcards_v4");
+        if (savedData) {
+          fullDatabase = JSON.parse(savedData);
+        } else {
+          // Dữ liệu mẫu nếu mới dùng lần đầu
+          fullDatabase = [
+            {
+              id: 1,
+              front: "Hello",
+              back: "Xin chào",
+              level: 0,
+              nextReview: 0,
+            },
+            {
+              id: 2,
+              front: "Thank you",
+              back: "Cảm ơn",
+              level: 0,
+              nextReview: 0,
+            },
+          ];
+        }
+        locTheCanHoc();
+      }
+
+      // --- 2. LOGIC LỌC THẺ (TRÁI TIM CỦA APP) ---
+      function locTheCanHoc() {
+        const now = Date.now();
+
+        // Lọc ra những thẻ có thời gian review <= hiện tại
+        studyQueue = fullDatabase.filter((card) => {
+          if (!card.nextReview) return true; // Thẻ mới chưa học bao giờ
+          return card.nextReview <= now;
+        });
+
+        updateUI();
+      }
+
+      // --- 3. CẬP NHẬT GIAO DIỆN ---
+      function updateUI() {
+        dueCountEl.innerText = studyQueue.length;
+
+        if (studyQueue.length === 0) {
+          // Nếu hết thẻ để học
+          frontEl.innerText = "🎉 Đã xong!";
+          backEl.innerText = "Hết thẻ cần học hôm nay rồi.";
+          levelEl.style.display = "none";
+          cardElement.classList.remove("is-flipped");
+          document.getElementById("reviewButtons").style.visibility = "hidden"; // Ẩn nút đánh giá
+          currentCard = null;
+          return;
+        }
+
+        // Lấy thẻ đầu tiên trong hàng đợi ra học
+        currentCard = studyQueue[0];
+
+        document.getElementById("reviewButtons").style.visibility = "visible";
+        levelEl.style.display = "inline-block";
+        cardElement.classList.remove("is-flipped");
+
+        setTimeout(() => {
+          frontEl.innerText = currentCard.front;
+          backEl.innerText = currentCard.back;
+          levelEl.innerText = "Lv." + (currentCard.level || 0);
+        }, 200);
+      }
+
+      // --- 4. XỬ LÝ ĐÁNH GIÁ (QUÊN / NHỚ) ---
+      function danhGia(nho) {
+        if (!currentCard) return;
+
+        const now = Date.now();
+        const oneDay = 24 * 60 * 60 * 1000; // Millisecond trong 1 ngày
+
+        if (nho) {
+          // NẾU NHỚ: Tăng Level, đẩy ngày học ra xa
+          currentCard.level = (currentCard.level || 0) + 1;
+
+          // Công thức đơn giản: Level 1 = 1 ngày, Level 2 = 2 ngày, Level 3 = 4 ngày...
+          // Bạn có thể chỉnh số này tùy ý
+          let daysToAdd = Math.pow(2, currentCard.level - 1);
+          currentCard.nextReview = now + daysToAdd * oneDay; // Tính thời điểm tiếp theo
+        } else {
+          // NẾU QUÊN: Về Level 0, học lại ngay lập tức (hoặc sau 1 phút)
+          currentCard.level = 0;
+          currentCard.nextReview = now; // Set là hiện tại để tý nữa nó xuất hiện lại
+        }
+
+        // Lưu dữ liệu cập nhật vào mảng gốc
+        saveToStorage();
+
+        // Nếu "Nhớ" -> Loại khỏi hàng đợi hôm nay. Nếu "Quên" -> Giữ lại hoặc đẩy xuống cuối
+        locTheCanHoc();
+      }
+
+      function latThe() {
+        if (currentCard) cardElement.classList.toggle("is-flipped");
+      }
+
+      function themThe() {
+        const front = document.getElementById("newFront").value;
+        const back = document.getElementById("newBack").value;
+        if (front && back) {
+          fullDatabase.push({
+            id: Date.now(), // ID duy nhất
+            front: front,
+            back: back,
+            level: 0,
+            nextReview: 0, // 0 nghĩa là cần học ngay
+          });
+          saveToStorage();
+          document.getElementById("newFront").value = "";
+          document.getElementById("newBack").value = "";
+          locTheCanHoc(); // Cập nhật lại list
+          alert("Đã thêm!");
+        }
+      }
+
+      function saveToStorage() {
+        localStorage.setItem("myFlashcards_v4", JSON.stringify(fullDatabase));
+      }
+
+      // Hàm phụ để reset data nếu muốn test lại từ đầu
+      function resetAll() {
+        if (confirm("Bạn muốn reset tất cả thẻ về trạng thái chưa học?")) {
+          fullDatabase.forEach((card) => {
+            card.level = 0;
+            card.nextReview = 0;
+          });
+          saveToStorage();
+          locTheCanHoc();
+        }
+      }
+
+      function docTu(event) {
+        event.stopPropagation();
+        if (!currentCard) return;
+        let isBack = cardElement.classList.contains("is-flipped");
+        let text = isBack ? currentCard.back : currentCard.front;
+        let lang = isBack ? "vi-VN" : "en-US";
+        let u = new SpeechSynthesisUtterance(text);
+        u.lang = lang;
+        window.speechSynthesis.speak(u);
+      }
+
+      initApp();
+    </script>
+  </body>
+</html>
