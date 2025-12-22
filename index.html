@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UET Flashcards v9 (Clean)</title>
+    <title>UET Flashcards v10 (Fix Voice)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; background-color: #f0f2f5; padding: 20px; color: #333; padding-bottom: 80px; }
         
@@ -24,7 +24,8 @@
 
         /* AUDIO BUTTONS */
         .audio-controls { margin-top: 10px; display: flex; justify-content: center; gap: 10px; }
-        .btn-audio { background: #fff; border: 1px solid #ddd; padding: 8px 15px; border-radius: 20px; font-size: 14px; cursor: pointer; color: #333; }
+        .btn-audio { background: #fff; border: 1px solid #ddd; padding: 8px 15px; border-radius: 20px; font-size: 14px; cursor: pointer; color: #333; font-weight: 600; }
+        .btn-audio:active { background: #e2e6ea; }
         
         /* MAIN BUTTONS */
         .controls { margin-top: 20px; display: flex; justify-content: center; gap: 15px; }
@@ -65,8 +66,8 @@
     </div>
 
     <div class="audio-controls" id="audioBar">
-        <button class="btn-audio" onclick="docTiengAnh(1.0, event)">🇺🇸 Nghe</button>
-        <button class="btn-audio" onclick="docTiengAnh(0.6, event)">🐌 Chậm</button>
+        <button class="btn-audio" onclick="docTiengAnh(1.0, event)">🇺🇸 Nghe Chuẩn</button>
+        <button class="btn-audio" onclick="docTiengAnh(0.6, event)">🐌 Nghe Chậm</button>
     </div>
 
     <div class="controls" id="reviewButtons">
@@ -96,6 +97,7 @@
         let fullDatabase = [];
         let studyQueue = [];
         let currentCard = null;
+        let voices = []; // Biến chứa danh sách giọng đọc
 
         const cardElement = document.getElementById("flashcard");
         const frontEl = document.getElementById("frontContent");
@@ -103,7 +105,6 @@
         const levelEl = document.getElementById("levelDisplay");
 
         function initApp() {
-            // Đổi tên key để tránh xung đột với bản cũ
             const savedData = localStorage.getItem('myFlashcards_v9');
             if (savedData) {
                 fullDatabase = JSON.parse(savedData);
@@ -111,9 +112,51 @@
                 fullDatabase = [];
             }
             locTheCanHoc();
+            
+            // Load giọng đọc ngay khi mở app
+            loadVoices();
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = loadVoices;
+            }
         }
 
-        // --- 1. XỬ LÝ FILE (Backup/Restore) ---
+        // --- HÀM TÌM GIỌNG ĐỌC CHUẨN (FIX CHO iPHONE) ---
+        function loadVoices() {
+            voices = window.speechSynthesis.getVoices();
+        }
+
+        function docTiengAnh(tocDo = 1.0, event) {
+            if (event) event.stopPropagation();
+            if (!currentCard) return;
+
+            // Lấy nội dung, bỏ phần trong ngoặc (...)
+            let cleanText = currentCard.front.replace(/\(.*\)/, "").trim();
+            
+            let u = new SpeechSynthesisUtterance(cleanText);
+            u.rate = tocDo;
+
+            // THUẬT TOÁN TÌM GIỌNG ƯU TIÊN:
+            // 1. Tìm giọng "Samantha" (Giọng chuẩn nhất trên iOS)
+            // 2. Nếu không có, tìm bất kỳ giọng nào có chữ "Google US"
+            // 3. Nếu không có, tìm bất kỳ giọng nào là tiếng Anh "en-US"
+            let bestVoice = voices.find(v => v.name === "Samantha") 
+                         || voices.find(v => v.name.includes("Samantha"))
+                         || voices.find(v => v.name.includes("Google US English"))
+                         || voices.find(v => v.lang === "en-US");
+
+            if (bestVoice) {
+                u.voice = bestVoice;
+                u.lang = bestVoice.lang;
+            } else {
+                // Đường cùng: Ép cứng mã ngôn ngữ
+                u.lang = "en-US";
+            }
+
+            window.speechSynthesis.cancel(); // Dừng câu cũ
+            window.speechSynthesis.speak(u);
+        }
+
+        // --- CÁC HÀM CŨ ---
         function nhapDuLieu(input) {
             const file = input.files[0];
             if (!file) return;
@@ -122,11 +165,11 @@
                 try {
                     const data = JSON.parse(e.target.result);
                     if (Array.isArray(data)) {
-                        if(confirm("Dữ liệu cũ sẽ bị thay thế bằng file này. Bạn chắc không?")) {
+                        if(confirm("Dữ liệu cũ sẽ bị thay thế. Bạn chắc không?")) {
                             fullDatabase = data;
                             saveToStorage();
                             locTheCanHoc();
-                            alert("Đã khôi phục thành công! (" + data.length + " thẻ)");
+                            alert("Đã khôi phục thành công!");
                         }
                     }
                 } catch (err) { alert("File lỗi!"); }
@@ -151,7 +194,6 @@
             document.body.removeChild(a);
         }
 
-        // --- 2. LOGIC HỌC TẬP ---
         function locTheCanHoc() {
             const now = Date.now();
             studyQueue = fullDatabase.filter(card => !card.nextReview || card.nextReview <= now);
@@ -164,7 +206,7 @@
 
             if (studyQueue.length === 0) {
                 frontEl.innerText = fullDatabase.length === 0 ? "Chào bạn!" : "🎉 Đã xong!";
-                backEl.innerText = fullDatabase.length === 0 ? "Hãy thêm thẻ mới bên dưới." : "Nghỉ ngơi thôi.";
+                backEl.innerText = fullDatabase.length === 0 ? "Hãy thêm thẻ mới." : "Nghỉ ngơi thôi.";
                 levelEl.style.display = "none";
                 document.getElementById("reviewButtons").style.visibility = "hidden";
                 document.getElementById("audioBar").style.visibility = "hidden";
@@ -227,16 +269,6 @@
 
         function saveToStorage() {
             localStorage.setItem('myFlashcards_v9', JSON.stringify(fullDatabase));
-        }
-
-        function docTiengAnh(tocDo = 1.0, event) {
-            if (event) event.stopPropagation();
-            if (!currentCard) return;
-            let cleanText = currentCard.front.replace(/\(.*\)/, "").trim();
-            let u = new SpeechSynthesisUtterance(cleanText);
-            u.lang = "en-US"; u.rate = tocDo;
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(u);
         }
 
         initApp();
