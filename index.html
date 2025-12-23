@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UET Flashcards v23 (Correct Score)</title>
+    <title>UET Flashcards v24 (Icon Top)</title>
     <style>
         /* --- TỔNG QUAN --- */
         body { 
@@ -20,8 +20,8 @@
         /* --- PLAYER RANK PROFILE --- */
         .player-profile {
             background: linear-gradient(145deg, #1e1e1e, #252525);
-            padding: 20px; 
-            border-radius: 16px; 
+            padding: 25px 20px; 
+            border-radius: 20px; 
             border: 1px solid #333;
             margin-bottom: 25px; 
             box-shadow: 0 4px 20px rgba(0,0,0,0.4);
@@ -31,9 +31,38 @@
         .player-profile:hover { transform: translateY(-2px); border-color: #03dac6; }
         .click-hint { position: absolute; top: 10px; right: 10px; font-size: 10px; color: #666; }
 
-        .rank-title { font-size: 13px; color: #aaa; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
-        .current-rank { font-size: 32px; margin: 5px 0; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-        .rank-score { font-size: 14px; color: #888; margin-bottom: 10px; }
+        .rank-title { font-size: 12px; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; }
+        
+        /* BỐ CỤC RANK MỚI (ICON TRÊN - CHỮ DƯỚI) */
+        .rank-display-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .rank-icon-large {
+            font-size: 56px; /* Icon to hơn hẳn */
+            line-height: 1;
+            margin-bottom: 5px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+            animation: float 3s ease-in-out infinite;
+        }
+        .current-rank-text { 
+            font-size: 26px; 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5); 
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .rank-score { font-size: 14px; color: #aaa; margin-bottom: 10px; }
         
         .progress-container { width: 100%; height: 6px; background: #333; border-radius: 4px; overflow: hidden; margin-top: 10px; }
         .progress-bar { height: 100%; background: linear-gradient(90deg, #03dac6, #00b3a6); width: 0%; transition: width 0.6s ease-out; }
@@ -147,9 +176,14 @@
 <body>
 
     <div class="player-profile" onclick="openRankModal()">
-        <span class="click-hint">ℹ️ Xem danh sách</span>
+        <span class="click-hint">ℹ️ Xem kho thẻ</span>
         <div class="rank-title">Hạng Của Tuấn</div>
-        <div class="current-rank" id="playerRankName">🐣 TẬP SỰ</div>
+        
+        <div class="rank-display-box">
+            <div id="rankIcon" class="rank-icon-large">🐣</div>
+            <div id="playerRankName" class="current-rank-text">TẬP SỰ</div>
+        </div>
+
         <div class="rank-score">Số thẻ đã thuộc (Lv2+): <b id="playerScore" style="color:#fff">0</b></div>
         
         <div class="progress-container">
@@ -248,14 +282,16 @@
         const backMainEl = document.getElementById("backMainContent");
         const cardLevelBadge = document.getElementById("cardLevelBadge");
         
+        const rankIconEl = document.getElementById("rankIcon");
         const playerRankName = document.getElementById("playerRankName");
         const playerScoreEl = document.getElementById("playerScore");
         const rankProgress = document.getElementById("rankProgress");
         const nextRankMsg = document.getElementById("nextRankMsg");
-        const timeNextEl = document.getElementById("timeNext");
 
         const waitMessage = document.getElementById("waitMessage");
         const countdownTimer = document.getElementById("countdownTimer");
+        const timeNextEl = document.getElementById("timeNext");
+
         const viewMode = document.getElementById("viewMode");
         const editMode = document.getElementById("editMode");
         const editFrontInput = document.getElementById("editFrontInput");
@@ -263,16 +299,17 @@
         const rankModal = document.getElementById("rankModal");
         const rankListContent = document.getElementById("rankListContent");
 
+        // CẤU HÌNH ICON VÀ TÊN RANK RIÊNG BIỆT
         const PLAYER_MILESTONES = [
-            { score: 0, name: "🐣 TẬP SỰ", class: "text-bac" },
-            { score: 50, name: "🥉 ĐỒNG ĐOÀN", class: "text-dong" },
-            { score: 100, name: "🥈 BẠC ĐOÀN", class: "text-bac" },
-            { score: 200, name: "🥇 VÀNG ĐOÀN", class: "text-vang" },
-            { score: 300, name: "💠 BẠCH KIM", class: "text-bachkim" },
-            { score: 400, name: "💎 KIM CƯƠNG", class: "text-kimcuong" },
-            { score: 500, name: "🔶 TINH ANH", class: "text-tinhanh" },
-            { score: 600, name: "👑 CAO THỦ", class: "text-caothu" },
-            { score: 1000, name: "🔥 THÁCH ĐẤU", class: "text-thachdau" }
+            { score: 0, icon: "🐣", name: "TẬP SỰ", class: "text-bac" },
+            { score: 50, icon: "🥉", name: "ĐỒNG ĐOÀN", class: "text-dong" },
+            { score: 100, icon: "🥈", name: "BẠC ĐOÀN", class: "text-bac" },
+            { score: 200, icon: "🥇", name: "VÀNG ĐOÀN", class: "text-vang" },
+            { score: 300, icon: "💠", name: "BẠCH KIM", class: "text-bachkim" },
+            { score: 400, icon: "💎", name: "KIM CƯƠNG", class: "text-kimcuong" },
+            { score: 500, icon: "🔶", name: "TINH ANH", class: "text-tinhanh" },
+            { score: 600, icon: "👑", name: "CAO THỦ", class: "text-caothu" },
+            { score: 1000, icon: "🔥", name: "THÁCH ĐẤU", class: "text-thachdau" }
         ];
 
         function initApp() {
@@ -296,14 +333,10 @@
 
         function loadVoices() { voices = window.speechSynthesis.getVoices(); }
 
-        // --- HÀM TÍNH ĐIỂM (ĐÃ SỬA: ĐẾM SỐ LƯỢNG THẺ LEVEL >= 2) ---
         function calculateTotalScore() {
             let count = 0;
             fullDatabase.forEach(card => {
-                // Chỉ đếm thẻ có level từ 2 trở lên. Mỗi thẻ tính 1 điểm.
-                if ((card.level || 0) >= 2) {
-                    count++;
-                }
+                if ((card.level || 0) >= 2) count++;
             });
             return count;
         }
@@ -326,8 +359,10 @@
                 }
             }
 
+            // Cập nhật Icon và Tên riêng biệt
+            rankIconEl.innerText = currentRankObj.icon;
             playerRankName.innerText = currentRankObj.name;
-            playerRankName.className = "current-rank " + currentRankObj.class;
+            playerRankName.className = "current-rank-text " + currentRankObj.class;
 
             if (nextRankObj) {
                 let prevScore = currentRankObj.score;
@@ -471,7 +506,7 @@
         }
         function xoaThe(e) { e.stopPropagation(); if(confirm(`Xóa thẻ?`)) { fullDatabase = fullDatabase.filter(c => c.id !== currentCard.id); saveToStorage(); locTheCanHoc(); updatePlayerRankUI(); } }
         function nhapDuLieu(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const data = JSON.parse(e.target.result); if (Array.isArray(data)) { if(confirm("Dữ liệu cũ sẽ bị thay thế?")) { fullDatabase = data; saveToStorage(); locTheCanHoc(); updatePlayerRankUI(); alert("Khôi phục thành công!"); } } } catch (err) { alert("File lỗi!"); } }; reader.readAsText(file); input.value = ''; }
-        function xuatDuLieu() { if (fullDatabase.length === 0) { alert("Trống!"); return; } const dataStr = JSON.stringify(fullDatabase, null, 2); const blob = new Blob([dataStr], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "backup_v23_" + new Date().toISOString().slice(0,10) + ".json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+        function xuatDuLieu() { if (fullDatabase.length === 0) { alert("Trống!"); return; } const dataStr = JSON.stringify(fullDatabase, null, 2); const blob = new Blob([dataStr], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "backup_v24_" + new Date().toISOString().slice(0,10) + ".json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
         function latThe() { if (!editMode.classList.contains("hidden")) return; if (currentCard) cardElement.classList.toggle("is-flipped"); }
         function themThe() { 
             const front = document.getElementById("newFront").value; 
