@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UET Flashcards v22 (Elite UI)</title>
+    <title>UET Flashcards v23 (Correct Score)</title>
     <style>
         /* --- TỔNG QUAN --- */
         body { 
@@ -17,7 +17,7 @@
             margin: 0 auto; 
         }
 
-        /* --- PLAYER RANK PROFILE (CLICKABLE) --- */
+        /* --- PLAYER RANK PROFILE --- */
         .player-profile {
             background: linear-gradient(145deg, #1e1e1e, #252525);
             padding: 20px; 
@@ -25,8 +25,7 @@
             border: 1px solid #333;
             margin-bottom: 25px; 
             box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            cursor: pointer; /* Bấm vào để xem danh sách */
-            transition: transform 0.2s, border-color 0.2s;
+            cursor: pointer; transition: transform 0.2s, border-color 0.2s;
             position: relative;
         }
         .player-profile:hover { transform: translateY(-2px); border-color: #03dac6; }
@@ -63,7 +62,6 @@
             background: linear-gradient(135deg, #2e7d32, #1b5e20); color: white; 
             transform: rotateY(180deg); font-size: 20px; 
         }
-
         .card-badge {
             margin-top: 15px; padding: 4px 12px; border-radius: 12px; font-size: 12px; 
             background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px);
@@ -71,9 +69,7 @@
 
         /* --- CONTROLS --- */
         .status-bar { margin-bottom: 20px; font-size: 14px; color: #777; }
-        
         .main-actions { margin-top: 25px; display: flex; justify-content: center; gap: 15px; }
-        
         .btn-action {
             flex: 1; border: none; border-radius: 14px; padding: 15px 0; max-width: 160px;
             cursor: pointer; font-weight: bold; font-size: 16px; color: white;
@@ -81,56 +77,38 @@
             transition: transform 0.1s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
         .btn-action:active { transform: scale(0.96); }
-        
-        /* Chỉnh style chữ nhỏ cho sang */
         .btn-sub { 
             font-size: 12px; font-weight: 500; opacity: 0.9; margin-top: 5px; 
             background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 10px;
         }
-        
         .btn-forget { background: linear-gradient(145deg, #cf6679, #b00020); }
         .btn-remember { background: linear-gradient(145deg, #03dac6, #018786); color: #000; }
 
-        /* --- SECTION BOXES --- */
-        .section-box {
-            margin-top: 30px; background: #1e1e1e; padding: 20px; border-radius: 16px; 
-            border: 1px solid #333; text-align: left;
-        }
+        /* --- INPUT & BACKUP --- */
+        .section-box { margin-top: 30px; background: #1e1e1e; padding: 20px; border-radius: 16px; border: 1px solid #333; text-align: left; }
         .section-title { font-size: 15px; color: #03dac6; margin-bottom: 12px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 8px;}
         
         textarea.input-modern {
             width: 100%; padding: 12px; margin-bottom: 10px;
             background: #121212; border: 1px solid #444; border-radius: 8px;
-            color: #eee; font-family: inherit; font-size: 15px; resize: vertical;
-            box-sizing: border-box;
+            color: #eee; font-family: inherit; font-size: 15px; resize: vertical; box-sizing: border-box;
         }
         textarea.input-modern:focus { outline: none; border-color: #03dac6; }
 
         .btn-block { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; color: white; }
         .btn-save { background: #2196f3; }
 
-        /* --- BACKUP BUTTONS (EQUAL SIZE) --- */
-        .backup-grid { 
-            display: flex; gap: 10px; margin-top: 10px; 
-        }
-        
+        .backup-grid { display: flex; gap: 10px; margin-top: 10px; }
         .btn-backup-item {
-            flex: 1; /* Chia đều không gian */
-            display: flex; align-items: center; justify-content: center; gap: 8px;
+            flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
             padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;
-            font-size: 14px; text-align: center; border: none; color: white;
-            transition: background 0.2s;
+            font-size: 14px; text-align: center; border: none; color: white; transition: background 0.2s;
         }
-
         .btn-download { background: #7b1fa2; }
-        .btn-download:hover { background: #6a1b9a; }
-
         .btn-upload { background: #424242; }
-        .btn-upload:hover { background: #616161; }
-        
-        input[type="file"] { display: none; } /* Ẩn input xấu */
+        input[type="file"] { display: none; }
 
-        /* --- MODAL RANK LIST (NEW) --- */
+        /* --- MODAL RANK LIST --- */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); z-index: 1000;
@@ -144,14 +122,10 @@
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .modal-title { font-size: 18px; font-weight: bold; color: #fff; }
         .btn-close { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; }
-        
         .rank-list-scroll { overflow-y: auto; flex: 1; }
         .rank-group { margin-bottom: 15px; }
         .rank-group-title { font-size: 12px; color: #888; margin-bottom: 5px; text-transform: uppercase; border-bottom: 1px solid #333; }
-        .rank-item { 
-            display: flex; justify-content: space-between; padding: 8px 0; 
-            border-bottom: 1px solid #2a2a2a; font-size: 14px; 
-        }
+        .rank-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2a2a2a; font-size: 14px; }
         .rank-item-front { color: #fff; }
         .rank-item-back { color: #03dac6; }
 
@@ -165,8 +139,6 @@
         .text-tinhanh { color: #ff5722; }
         .text-caothu { color: #e040fb; }
         .text-thachdau { background: -webkit-linear-gradient(45deg, #ff0000, #ffff00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        /* Mini Buttons */
         .mini-actions { margin-top: 15px; display: flex; gap: 10px; border-top: 1px dashed rgba(255,255,255,0.3); padding-top: 10px; }
         .btn-mini { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
 
@@ -175,15 +147,15 @@
 <body>
 
     <div class="player-profile" onclick="openRankModal()">
-        <span class="click-hint">ℹ️ Xem kho thẻ</span>
+        <span class="click-hint">ℹ️ Xem danh sách</span>
         <div class="rank-title">Hạng Của Tuấn</div>
         <div class="current-rank" id="playerRankName">🐣 TẬP SỰ</div>
-        <div class="rank-score">Điểm thông thạo (Lv2+): <b id="playerScore" style="color:#fff">0</b></div>
+        <div class="rank-score">Số thẻ đã thuộc (Lv2+): <b id="playerScore" style="color:#fff">0</b></div>
         
         <div class="progress-container">
             <div class="progress-bar" id="rankProgress"></div>
         </div>
-        <div class="next-rank-info" id="nextRankMsg">Tiếp theo: Đồng (50 điểm)</div>
+        <div class="next-rank-info" id="nextRankMsg">Tiếp theo: Đồng (50 thẻ)</div>
     </div>
 
     <div class="status-bar">
@@ -219,7 +191,6 @@
 
     <div id="waitMessage" class="hidden" style="margin-top:30px">
         <h3 style="color: #03dac6;">🎉 Hoàn thành!</h3>
-        <p style="color:#888; font-size:14px">Hẹn gặp lại sau:</p>
         <div id="countdownTimer" style="font-size: 24px; font-weight: bold; color: #bb86fc; margin-top:10px">00:00:00</div>
     </div>
 
@@ -249,12 +220,8 @@
     <div class="section-box">
         <div class="section-title">🛠️ Dữ liệu</div>
         <div class="backup-grid">
-            <button class="btn-backup-item btn-download" onclick="xuatDuLieu()">
-                ⬇️ Tải Backup
-            </button>
-            <label for="fileInput" class="btn-backup-item btn-upload">
-                📂 Khôi Phục
-            </label>
+            <button class="btn-backup-item btn-download" onclick="xuatDuLieu()">⬇️ Tải Backup</button>
+            <label for="fileInput" class="btn-backup-item btn-upload">📂 Khôi Phục</label>
             <input type="file" id="fileInput" accept=".json" onchange="nhapDuLieu(this)">
         </div>
         <button class="btn-block" style="background:#d32f2f; margin-top:10px" onclick="xoaHet()">🗑️ Xóa toàn bộ</button>
@@ -266,8 +233,7 @@
                 <div class="modal-title">💎 Kho Tàng Từ Vựng</div>
                 <button class="btn-close" onclick="closeRankModal()">&times;</button>
             </div>
-            <div class="rank-list-scroll" id="rankListContent">
-                </div>
+            <div class="rank-list-scroll" id="rankListContent"></div>
         </div>
     </div>
 
@@ -286,16 +252,14 @@
         const playerScoreEl = document.getElementById("playerScore");
         const rankProgress = document.getElementById("rankProgress");
         const nextRankMsg = document.getElementById("nextRankMsg");
+        const timeNextEl = document.getElementById("timeNext");
 
         const waitMessage = document.getElementById("waitMessage");
         const countdownTimer = document.getElementById("countdownTimer");
-        const timeNextEl = document.getElementById("timeNext");
-
         const viewMode = document.getElementById("viewMode");
         const editMode = document.getElementById("editMode");
         const editFrontInput = document.getElementById("editFrontInput");
         const editBackInput = document.getElementById("editBackInput");
-
         const rankModal = document.getElementById("rankModal");
         const rankListContent = document.getElementById("rankListContent");
 
@@ -332,16 +296,16 @@
 
         function loadVoices() { voices = window.speechSynthesis.getVoices(); }
 
-        // --- TÍNH ĐIỂM (CHỈ TÍNH TỪ LEVEL 2 TRỞ LÊN) ---
+        // --- HÀM TÍNH ĐIỂM (ĐÃ SỬA: ĐẾM SỐ LƯỢNG THẺ LEVEL >= 2) ---
         function calculateTotalScore() {
-            let total = 0;
+            let count = 0;
             fullDatabase.forEach(card => {
-                let lv = card.level || 0;
-                if (lv >= 2) {
-                    total += lv;
+                // Chỉ đếm thẻ có level từ 2 trở lên. Mỗi thẻ tính 1 điểm.
+                if ((card.level || 0) >= 2) {
+                    count++;
                 }
             });
-            return total;
+            return count;
         }
 
         function updatePlayerRankUI() {
@@ -372,40 +336,25 @@
                 if(percent < 0) percent = 0;
                 
                 rankProgress.style.width = percent + "%";
-                nextRankMsg.innerText = `Cần ${targetScore - score} điểm nữa để lên ${nextRankObj.name}`;
+                nextRankMsg.innerText = `Cần ${targetScore - score} thẻ (Lv2+) nữa để lên ${nextRankObj.name}`;
             } else {
                 rankProgress.style.width = "100%";
                 nextRankMsg.innerText = "Đỉnh cao phong độ!";
             }
         }
 
-        // --- XỬ LÝ MODAL LIST TỪ VỰNG ---
         function openRankModal() {
-            // Tạo nội dung list
-            // Sắp xếp database theo level giảm dần
             let sortedDB = [...fullDatabase].sort((a, b) => (b.level || 0) - (a.level || 0));
-            
-            // Nhóm theo level
             let html = "";
             let currentLv = -1;
 
             sortedDB.forEach(card => {
                 let lv = card.level || 0;
                 if (lv !== currentLv) {
-                    if (currentLv !== -1) html += `</div>`; // Đóng group cũ
+                    if (currentLv !== -1) html += `</div>`; 
                     currentLv = lv;
-                    let rankName = "Mới học";
-                    if(lv >= 7) rankName = "Thách Đấu";
-                    else if(lv == 6) rankName = "Cao Thủ";
-                    else if(lv == 5) rankName = "Tinh Anh";
-                    else if(lv == 4) rankName = "Kim Cương";
-                    else if(lv == 3) rankName = "Bạch Kim";
-                    else if(lv == 2) rankName = "Vàng";
-                    else if(lv == 1) rankName = "Bạc";
-                    else rankName = "Đồng/Mới";
-
-                    html += `<div class="rank-group">
-                                <div class="rank-group-title">Level ${lv} - ${rankName}</div>`;
+                    let rankName = (lv >= 2) ? "Đã thuộc (Điểm +1)" : "Chưa thuộc (0 điểm)";
+                    html += `<div class="rank-group"><div class="rank-group-title">Level ${lv} - ${rankName}</div>`;
                 }
                 html += `<div class="rank-item">
                             <span class="rank-item-front">${card.front}</span>
@@ -413,17 +362,13 @@
                          </div>`;
             });
             if(fullDatabase.length > 0) html += `</div>`;
-            if(fullDatabase.length === 0) html = "<p style='color:#666; text-align:center'>Chưa có từ nào!</p>";
+            else html = "<p style='color:#666; text-align:center'>Chưa có từ nào!</p>";
 
             rankListContent.innerHTML = html;
             rankModal.classList.remove("hidden");
         }
+        function closeRankModal() { rankModal.classList.add("hidden"); }
 
-        function closeRankModal() {
-            rankModal.classList.add("hidden");
-        }
-
-        // --- LOGIC FLASHCARD ---
         function danhGia(nho) {
             if (!currentCard) return;
             if (!editMode.classList.contains("hidden")) huySua(null);
@@ -476,8 +421,6 @@
 
             const nextLv = (currentCard.level || 0) + 1;
             const days = Math.pow(2, nextLv - 1);
-            
-            // STYLE MỚI CHO THỜI GIAN
             timeNextEl.innerText = `⏳ ${days} ngày`;
 
             cardElement.classList.remove("is-flipped"); 
@@ -493,13 +436,9 @@
         function updateCountdown() {
             if (studyQueue.length > 0) { countdownTimer.innerText = "Đang học..."; return; }
             if (fullDatabase.length === 0) { countdownTimer.innerText = "Trống!"; return; }
-
             const now = Date.now();
             let minTime = Infinity;
-            fullDatabase.forEach(c => {
-                if (c.nextReview > now && c.nextReview < minTime) minTime = c.nextReview;
-            });
-
+            fullDatabase.forEach(c => { if (c.nextReview > now && c.nextReview < minTime) minTime = c.nextReview; });
             if (minTime === Infinity) { countdownTimer.innerText = "Hoàn thành!"; } 
             else {
                 let diff = minTime - now;
@@ -532,19 +471,15 @@
         }
         function xoaThe(e) { e.stopPropagation(); if(confirm(`Xóa thẻ?`)) { fullDatabase = fullDatabase.filter(c => c.id !== currentCard.id); saveToStorage(); locTheCanHoc(); updatePlayerRankUI(); } }
         function nhapDuLieu(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const data = JSON.parse(e.target.result); if (Array.isArray(data)) { if(confirm("Dữ liệu cũ sẽ bị thay thế?")) { fullDatabase = data; saveToStorage(); locTheCanHoc(); updatePlayerRankUI(); alert("Khôi phục thành công!"); } } } catch (err) { alert("File lỗi!"); } }; reader.readAsText(file); input.value = ''; }
-        function xuatDuLieu() { if (fullDatabase.length === 0) { alert("Trống!"); return; } const dataStr = JSON.stringify(fullDatabase, null, 2); const blob = new Blob([dataStr], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "backup_v22_" + new Date().toISOString().slice(0,10) + ".json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+        function xuatDuLieu() { if (fullDatabase.length === 0) { alert("Trống!"); return; } const dataStr = JSON.stringify(fullDatabase, null, 2); const blob = new Blob([dataStr], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "backup_v23_" + new Date().toISOString().slice(0,10) + ".json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
         function latThe() { if (!editMode.classList.contains("hidden")) return; if (currentCard) cardElement.classList.toggle("is-flipped"); }
         function themThe() { 
             const front = document.getElementById("newFront").value; 
             const back = document.getElementById("newBack").value; 
             if (front && back) { 
                 fullDatabase.push({ id: Date.now(), front: front, back: back, level: 0, nextReview: 0 }); 
-                saveToStorage(); 
-                document.getElementById("newFront").value = ""; 
-                document.getElementById("newBack").value = ""; 
-                locTheCanHoc(); 
-                updatePlayerRankUI(); 
-                alert("Đã thêm thẻ!");
+                saveToStorage(); document.getElementById("newFront").value = ""; document.getElementById("newBack").value = ""; 
+                locTheCanHoc(); updatePlayerRankUI(); alert("Đã thêm thẻ!");
             } 
         }
         function xoaHet() { if(confirm("CẢNH BÁO: Xóa sạch toàn bộ dữ liệu?")) { fullDatabase = []; saveToStorage(); locTheCanHoc(); updatePlayerRankUI(); } }
